@@ -26,5 +26,9 @@ typedef unsigned short  ushort;
 typedef unsigned int    uint;
 typedef unsigned long   ulong;
 
+#define dl_max(a,b) (a > b ? a : b);
+
+#define dl_offset_data(q, type, link)               \
+    (type *) ((char *) q - offsetof(type, link))
 
 #endif

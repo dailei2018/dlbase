@@ -22,6 +22,7 @@ typedef struct _dl_pool dl_pool;
 #include "dl_queue.h"
 #include "dl_hash.h"
 #include "dl_bstree.h"
+#include "dl_rbtree.h"
 
 
 #endif

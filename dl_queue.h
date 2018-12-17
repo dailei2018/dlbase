@@ -68,10 +68,6 @@ struct _dl_queue {
     (h)->prev->next = h;
 
 
-#define dl_queue_data(q, type, link)               \
-    (type *) ((char *) q - offsetof(type, link))
-
-
 void
 dl_queue_sort(dl_queue *queue, int (*cmp)(const dl_queue *, const dl_queue *));
 

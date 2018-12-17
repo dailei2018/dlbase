@@ -74,8 +74,8 @@ person *new_person(int age, char *name){
 int person_cmp(const dl_queue *q1, const dl_queue *q2){
     person *p1, *p2;
 
-    p1 = dl_queue_data(q1, person, q);
-    p2 = dl_queue_data(q2, person, q);
+    p1 = dl_offset_data(q1, person, q);
+    p2 = dl_offset_data(q2, person, q);
 
     // descending
     return p1->age < p2->age;

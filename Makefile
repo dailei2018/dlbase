@@ -14,14 +14,14 @@ build: binary
 binary:	libdlbase.so
 
 libdlbase.so:	dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o dl_queue.o \
-				dl_phash.o dl_hash.o dl_bstree.o
+				dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o
 	
 	$(LINK) -o libdlbase.so dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o \
-			   dl_queue.o dl_phash.o dl_hash.o dl_bstree.o \
+			   dl_queue.o dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o \
 			   $(XLIBS)	
 	
 	rm -f `find ./ -name '*.o'`
-	#cp libdlbase.so /usr/lib/x86_64-linux-gnu/
+	cp libdlbase.so /usr/lib/x86_64-linux-gnu/
 
 dl_file.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dl_file.o dl_file.c
@@ -52,6 +52,9 @@ dl_hash.o:
 
 dl_bstree.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dl_bstree.o dl_bstree.c
+
+dl_rbtree.o:
+	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dl_rbtree.o dl_rbtree.c
 
 clean:
 	rm -f `find ./ -name '*.o'`
