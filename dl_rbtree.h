@@ -37,9 +37,11 @@ struct _dl_rbtree_node{
 #define dl_rbt_is_black(node)          (!dl_rbt_is_red(node))
 #define dl_rbt_copy_color(n1, n2)      (n1->color = n2->color)
 
+
 static inline dl_rbtree_node *
 dl_rbtree_min(dl_rbtree_node *node, dl_rbtree_node *sentinel)
 {
+
     while (node->left != sentinel) {
         node = node->left;
     }
@@ -47,10 +49,17 @@ dl_rbtree_min(dl_rbtree_node *node, dl_rbtree_node *sentinel)
     return node;
 }
 
-dl_rbtree_node *
-dl_rbtree_next(dl_rbtree *tree, dl_rbtree_node *node);
+dl_rbtree_node *dl_rbtree_next(dl_rbtree *tree, dl_rbtree_node *node);
 
 void dl_rbtree_insert(dl_rbtree *tree, dl_rbtree_node *node);
 void dl_rbtree_insert_value(dl_rbtree_node *temp, dl_rbtree_node *node,
     dl_rbtree_node *sentinel);
+
+void
+dl_rbtree_delete(dl_rbtree *tree, dl_rbtree_node *node);
+
+dl_rbtree_node *dl_rbtree_grandparent(dl_rbtree_node *node);
+dl_rbtree_node *dl_rbtree_uncle(dl_rbtree_node *node);
+dl_rbtree_node *dl_rbtree_sibling(dl_rbtree_node *node);
+
 #endif
