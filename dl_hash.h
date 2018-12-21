@@ -7,8 +7,10 @@
 
 #define H_UNIQUE    1
 #define H_LIST      2
-
 #define P_HASH      128
+
+#define PH_UNIQUE   (H_UNIQUE | P_HASH)
+#define PH_LIST     (H_LIST | P_HASH)
 
 enum {
     DL_INT = 1,
@@ -33,7 +35,7 @@ struct _dl_hash_v{
 };
 
 struct _dl_hash_k{
-    dl_str       key;
+    dl_str       *key;
     uint         hash;
     dl_node     *next;
 };

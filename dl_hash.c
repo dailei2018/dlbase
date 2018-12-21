@@ -71,7 +71,7 @@ static int dl_hash_set(dl_hash *h, dl_str *key, void *v, int type, int replace){
     n = &node;
     while(*n){
         if((*n)->k.hash == h_key &&
-           memcmp((*n)->k.key.data, key->data, key->len) == 0)
+           memcmp((*n)->k.key->data, key->data, key->len) == 0)
         {
             break;
         }else{
@@ -160,7 +160,9 @@ static void free_node(dl_node *node){
 
     node = node->k.next;
     while(node){
-        dl_free(node->k.key.data);
+        dl_free(node->k.key->data);
+        dl_free(node->k.key);
+
         free_v(&node->v);
 
         node = node->k.next;
@@ -174,7 +176,7 @@ static void free_node(dl_node *node){
         dl_free(first_n->v.v.s);
     }
 
-    dl_free(first_n->k.key.data);
+    dl_free(first_n->k.key->data);
 }
 
 static dl_hash_v *
@@ -208,10 +210,13 @@ fill_node(dl_hash *h, dl_str *key, void *v, dl_node *n, int type)
     n->v.tt = type;
     if(fill_v(h, key, v, &n->v) == NULL) return NULL;
 
-    n->k.key.len = key->len;
-    n->k.key.data = dl_alloc(key->len, h->pool->log);
-    memcpy(n->k.key.data, key->data, key->len);
-    if(n->k.key.data == NULL) return NULL;
+    n->k.key = dl_alloc(sizeof(dl_str), h->pool->log);
+    if(n->k.key == NULL) return NULL;
+
+    n->k.key->len = key->len;
+    n->k.key->data = dl_alloc(key->len, h->pool->log);
+    memcpy(n->k.key->data, key->data, key->len);
+    if(n->k.key->data == NULL) return NULL;
 
     n->k.next = NULL;
 
@@ -230,7 +235,7 @@ dl_hash_v * dl_hash_get(dl_hash *h, char *data, int len){
 
     while(node){
         if(node->k.hash == h_key &&
-           memcmp(node->k.key.data, data, len) == 0)
+           memcmp(node->k.key->data, data, len) == 0)
         {
             return &node->v;
         }else{
@@ -276,8 +281,8 @@ dump_hash_key(dl_hash *h)
             printf("slot:%d\n", i);
 
             while(node){
-                memcpy(buf, node->k.key.data, node->k.key.len);
-                buf[node->k.key.len] = '\0';
+                memcpy(buf, node->k.key->data, node->k.key->len);
+                buf[node->k.key->len] = '\0';
                 printf("  key:%s hash:%u\n", buf, node->k.hash);
                 node = node->k.next;
             }

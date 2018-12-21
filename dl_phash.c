@@ -1,7 +1,7 @@
 #include "dl_base.h"
 
 static int dl_phash_set(dl_hash *h, dl_str *key, void *v, int type);
-static dl_hash_v *pfill_v(dl_hash *h, dl_str *key, void *v, dl_hash_v *hv);
+static dl_hash_v *pfill_v(dl_hash_v *hv, void *v);
 static dl_node *pfill_node(dl_hash *h, dl_str *key, void *v, dl_node *n, int type);
 
 
@@ -65,7 +65,7 @@ dl_phash_set(dl_hash *h, dl_str *key, void *v, int type)
     n = &node;
     while(*n){
         if((*n)->k.hash == h_key &&
-           memcmp((*n)->k.key.data, key->data, key->len) == 0)
+           memcmp((*n)->k.key->data, key->data, key->len) == 0)
         {
             break;
         }else{
@@ -102,7 +102,7 @@ dl_phash_set(dl_hash *h, dl_str *key, void *v, int type)
         *vv = dl_palloc(h->pool, sizeof(dl_hash_v));
         (*vv)->tt = type;
 
-        if(pfill_v(h, key, v, *vv) == NULL) return DL_ERROR;
+        if(pfill_v(*vv, v) == NULL) return DL_ERROR;
         h->el_sum++;
 
     }
@@ -111,16 +111,10 @@ dl_phash_set(dl_hash *h, dl_str *key, void *v, int type)
 }
 
 static dl_hash_v *
-pfill_v(dl_hash *h, dl_str *key, void *v, dl_hash_v *hv)
+pfill_v(dl_hash_v *hv, void *v)
 {
     if(hv->tt == DL_STR){
-        hv->v.s = dl_palloc(h->pool, sizeof(dl_str));
-        if(hv->v.s == NULL) return NULL;
-
-        hv->v.s->data = dl_pstrdup(h->pool, (dl_str *)v);
-        if(hv->v.s->data == NULL) return NULL;
-
-        hv->v.s->len = ((dl_str *)v)->len;
+        hv->v.s = (dl_str *)v;
     }else if(hv->tt == DL_INT){
         hv->v.n = *(int *)v;
     }else if(hv->tt == DL_VOID){
@@ -138,12 +132,9 @@ static dl_node *
 pfill_node(dl_hash *h, dl_str *key, void *v, dl_node *n, int type)
 {
     n->v.tt = type;
-    if(pfill_v(h, key, v, &n->v) == NULL) return NULL;
+    if(pfill_v(&n->v, v) == NULL) return NULL;
 
-    n->k.key.len = key->len;
-    n->k.key.data = dl_pstrdup(h->pool, key);
-    if(n->k.key.data == NULL) return NULL;
-
+    n->k.key = key;
     n->k.next = NULL;
 
     return n;

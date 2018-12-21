@@ -3,8 +3,6 @@
 
 #include "dl_base.h"
 
-typedef struct _dl_array dl_array;
-
 struct _dl_array{
     void        *elts;
     int          nelts;
@@ -13,6 +11,7 @@ struct _dl_array{
     dl_pool     *pool;
 };
 
+dl_array *dl_array_create(dl_pool *p, int n, size_t size);
 void dl_array_destroy(dl_array *a);
 void *dl_array_push(dl_array *a);
 void *dl_array_push_n(dl_array *a, int n);

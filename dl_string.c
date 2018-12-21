@@ -1,6 +1,9 @@
 #include "dl_base.h"
 
-dl_str_ch * split_to_ch_c(dl_str *str, char c){
+dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c)
+{
+    if(str == NULL || arr == NULL) return NULL;
+
     char *begin,*end,*cur;
     int len;
 
@@ -8,35 +11,22 @@ dl_str_ch * split_to_ch_c(dl_str *str, char c){
     end = str->data + str->len;
     len = str->len;
 
-    dl_str_ch *head_ch = malloc(sizeof(dl_str_ch));
-    dl_str_ch *ch = NULL;
+    dl_str *el;
 
-    while(1){
+    for(;;){
         cur = dl_strnchr(begin, len, c);
+        if(cur == NULL) cur = end;
 
-        if(cur == NULL){
-            cur = end;
-        }
-
-        if(ch == NULL){
-            ch = head_ch;
-        }else{
-            ch->next = malloc(sizeof(dl_str_ch));
-            ch = ch->next;
-            ch->next = NULL;
-        }
-
-        ch->str.data = begin;
-        ch->str.len = cur - begin;
+        el = dl_array_push(arr);
+        el->len = cur - begin;
+        el->data = begin;
 
         if(cur == end) break;
 
         begin = cur + 1;
-        len -= ch->str.len+1;
     }
 
-    return head_ch;
-
+    return arr;
 }
 
 char *dl_strnchr(char *str, int len, char c){
@@ -54,52 +44,34 @@ char *dl_strnchr(char *str, int len, char c){
     return NULL;
 }
 
-/*
- * debug
- */
-
-void dump_ch(dl_str_ch *ch){
-    char buf[1024];
-    while(ch != NULL){
-        if(ch->str.len == 0){
-            memcpy(buf, "NULL", 5);
-        }else{
-            memcpy(buf, ch->str.data, ch->str.len);
-            buf[ch->str.len] = '\0';
-        }
-
-        printf("%s\n", buf);
-        ch = ch->next;
-    }
-}
 
 char *
-dl_pstrdup(dl_pool *pool, dl_str *src)
+dl_pstrdup(dl_pool *pool, char *data, size_t len)
 {
     char  *dst;
 
-    dst = dl_pnalloc(pool, src->len);
+    dst = dl_pnalloc(pool, len);
     if (dst == NULL) {
         return NULL;
     }
 
-    memcpy(dst, src->data, src->len);
+    memcpy(dst, data, len);
 
     return dst;
 }
 
 char *
-dl_pstrdup_nt(dl_pool *pool, dl_str *src)
+dl_pstrdup_nt(dl_pool *pool, char *data, size_t len)
 {
     char  *dst;
 
-    dst = dl_pnalloc(pool, src->len + 1);
+    dst = dl_pnalloc(pool, len + 1);
     if (dst == NULL) {
         return NULL;
     }
 
-    memcpy(dst, src->data, src->len);
-    dst[src->len] = '\0';
+    memcpy(dst, data, len);
+    dst[len] = '\0';
 
     return dst;
 }

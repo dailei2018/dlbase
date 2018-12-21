@@ -4,6 +4,7 @@
 #include "dl_config.h"
 
 typedef struct _dl_pool dl_pool;
+typedef struct _dl_array dl_array;
 
 #define  DL_OK          0
 #define  DL_ERROR      -1
@@ -23,6 +24,7 @@ typedef struct _dl_pool dl_pool;
 #include "dl_hash.h"
 #include "dl_bstree.h"
 #include "dl_rbtree.h"
+#include "dl_shm.h"
 
 
 #endif

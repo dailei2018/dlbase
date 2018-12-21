@@ -10,6 +10,10 @@
 #include <stdint.h>     //for uintptr_t
 
 #include <stddef.h>     //for offsetof
+#include <fcntl.h>      //for open
+
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #define DL_INT8_LEN   (sizeof("-127") - 1)
 #define DL_INT16_LEN   (sizeof("-32768") - 1)
@@ -30,5 +34,7 @@ typedef unsigned long   ulong;
 
 #define dl_offset_data(q, type, link)               \
     (type *) ((char *) q - offsetof(type, link))
+
+#define DL_CUP_CACHE_LINE 64
 
 #endif

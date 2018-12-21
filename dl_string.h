@@ -3,32 +3,25 @@
 
 #include "dl_base.h"
 
-typedef struct _dl_str_ch dl_str_ch;
 typedef struct _dl_str dl_str;
 
 struct _dl_str{
+    size_t len;
     char *data;
-    int len;
-
-    int flag;       // 1 means data is a null terminate string
 };
 
-struct _dl_str_ch{
-    dl_str str;
-    dl_str_ch *next;
-};
+#define dl_string(str)     { sizeof(str) - 1, (char *) str};
 
 char *dl_strnchr(char *str, int len, char c);
-dl_str_ch * split_to_ch_c(dl_str *str, char c);
+dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c);
 
 
-char *dl_pstrdup(dl_pool *pool, dl_str *src);
-char *dl_pstrdup_nt(dl_pool *pool, dl_str *src);
+char *dl_pstrdup(dl_pool *pool, char *data, size_t len);
+char *dl_pstrdup_nt(dl_pool *pool, char *data, size_t len);
 
 /*
  * debug
  */
 
-void dump_ch(dl_str_ch *ch);
 
 #endif

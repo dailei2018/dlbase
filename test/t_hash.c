@@ -10,17 +10,6 @@ struct _person {
 dl_pool *pool;
 dl_hash *h;
 
-void err_msg(const char *format, ...){
-    char buf[1024];
-    va_list argList;
-    va_start(argList, format);
-
-    vsnprintf(buf, 1024, format, argList);
-
-    puts(buf);
-    exit(1);
-}
-
 void dump_person_v(dl_hash_v *v){
     person *p;
 
@@ -50,9 +39,9 @@ int main(){
 
     person p6 = {"DL", 28};
 
-    dl_str k1 = {"p1", 2, 1};
-    dl_str k2 = {"p2", 2, 1};
-    dl_str k3 = {"p3", 2, 1};
+    dl_str k1 = dl_string("p1");
+    dl_str k2 = dl_string("p2");
+    dl_str k3 = dl_string("p3");
 
     dl_hash_set_void(h, &k1, &p1);
     dl_hash_set_void(h, &k1, &p2);
@@ -60,7 +49,6 @@ int main(){
     dl_hash_set_void(h, &k2, &p4);
     dl_hash_set_void(h, &k2, &p5);
     dl_hash_set_void(h, &k3, &p5);
-
 
     //dump_hash_key(h);
 

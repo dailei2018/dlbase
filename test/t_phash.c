@@ -10,17 +10,6 @@ struct _person {
 dl_pool *pool;
 dl_hash *h;
 
-void err_msg(const char *format, ...){
-    char buf[1024];
-    va_list argList;
-    va_start(argList, format);
-
-    vsnprintf(buf, 1024, format, argList);
-
-    puts(buf);
-    exit(1);
-}
-
 int main(){
     pool = dl_create_pool(1024, NULL);
 
@@ -35,11 +24,11 @@ int main(){
 
     person p6 = {"DL", 28};
 
-    dl_str k1 = {"p1", 2, 1};
-    dl_str k2 = {"p2", 2, 1};
-    dl_str k3 = {"p3", 2, 1};
-    dl_str k4 = {"p4", 2, 1};
-    dl_str k5 = {"p5", 2, 1};
+    dl_str k1 = dl_string("p1");
+    dl_str k2 = dl_string("p2");
+    dl_str k3 = dl_string("p3");
+    dl_str k4 = dl_string("p4");
+    dl_str k5 = dl_string("p5");
 
     dl_phash_set_void(h, &k1, &p1);
     dl_phash_set_void(h, &k2, &p2);
@@ -65,7 +54,7 @@ int main(){
      */
     char *key;
     if(dl_phash_set_void(h, &k5, &p6) == DL_BUSY){
-        key = dl_pstrdup_nt(pool, &k5);
+        key = dl_pstrdup_nt(pool, k5.data, k5.len);
         dl_printf("\nhash set failed, key:%s already exits\n", key);
     }
 
@@ -74,9 +63,9 @@ int main(){
      */
     dl_printf("\nafter changing flag to list");
 
-    h->flag = H_LIST;
+    h->flag = PH_LIST;
     if(dl_phash_set_void(h, &k5, &p6) == DL_OK){
-        key = dl_pstrdup_nt(pool, &k5);
+        key = dl_pstrdup_nt(pool, k5.data, k5.len);
         dl_printf("hash set successfully, key:%s\n", key);
     }
 
