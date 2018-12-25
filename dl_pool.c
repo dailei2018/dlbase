@@ -9,7 +9,7 @@ dl_create_pool(size_t size, dl_log *log)
 {
     dl_pool  *p;
 
-    p = malloc(size);
+    p = dl_alloc(size, log);
     if (p == NULL) {
         dl_log_error(DL_LOG_EMERG, log, "malloc failed size:%lu", size);
         return NULL;
@@ -26,6 +26,7 @@ dl_create_pool(size_t size, dl_log *log)
     p->current = p;
     p->large = NULL;
     p->log = log;
+    p->slab_pool = NULL;
 
     return p;
 }
@@ -70,7 +71,11 @@ dl_palloc_large(dl_pool *pool, size_t size)
     int              n;
     dl_pool_large   *large;
 
-    p = dl_alloc(size, pool->log);
+    if(pool->slab_pool)
+        p = dl_alloc_s(pool->slab_pool, size, pool->log);
+    else
+        p = dl_alloc(size, pool->log);
+    
     if (p == NULL) {
         return NULL;
     }
@@ -140,7 +145,11 @@ dl_palloc_block(dl_pool *pool, size_t size)
 
     psize = (size_t) (pool->d.end - (char *) pool);
 
-    m = malloc(psize);
+    if(pool->slab_pool)
+        m = dl_alloc_s(pool->slab_pool, psize, pool->log);
+    else
+        m = dl_alloc(psize, pool->log);
+    
     if (m == NULL) {
         dl_log_error(DL_LOG_EMERG, pool->log, "malloc failed size:%lu", psize);
         return NULL;
@@ -179,12 +188,19 @@ dl_destroy_pool(dl_pool *pool)
 
     for (l = pool->large; l; l = l->next) {
         if (l->alloc) {
-            dl_free(l->alloc);
+            if(pool->slab_pool)
+                dl_free_s(pool->slab_pool, l->alloc);
+            else
+                dl_free(l->alloc);
         }
     }
 
     for (p = pool, n = pool->d.next; /* void */; p = n, n = n->d.next) {
-        dl_free(p);
+        if(pool->slab_pool)
+            dl_free_s(pool->slab_pool, p);
+        else
+            dl_free(p);
+        
         if (n == NULL) break;
     }
 }
@@ -197,7 +213,10 @@ dl_reset_pool(dl_pool *pool)
 
     for (l = pool->large; l; l = l->next) {
         if (l->alloc) {
-            dl_free(l->alloc);
+            if(pool->slab_pool)
+                dl_free_s(pool->slab_pool, l->alloc);
+            else
+                dl_free(l->alloc);
         }
     }
 
@@ -220,9 +239,7 @@ dl_alloc(size_t size, dl_log *log)
         dl_log_error(DL_LOG_EMERG, log, "malloc failed size:%lu", size);
     }
 
-#ifdef DL_MEM_DEBUG
-    printf("alloc:%p\n", p);
-#endif
+    //printf("alloc:%p\n", p);
 
     return p;
 }
@@ -243,8 +260,62 @@ dl_calloc(size_t size, dl_log *log)
 
 void
 dl_free(void *buf){
-#ifdef DL_MEM_DEBUG
-    printf("free:%p\n", buf);
-#endif
+
+    //printf("free:%p\n", buf);
+
     free(buf);
+}
+
+
+
+
+/* slab */
+dl_pool *
+dl_create_pool_slab(dl_slab_pool *slab_pool, size_t size, dl_log *log)
+{
+    dl_pool  *p;
+
+    p = dl_alloc_s(slab_pool, size, log);
+    if (p == NULL) {
+        dl_log_error(DL_LOG_EMERG, log, "malloc failed size:%lu", size);
+        return NULL;
+    }
+
+    p->d.last = (char *) p + sizeof(dl_pool);
+    p->d.end = (char *) p + size;
+    p->d.next = NULL;
+    p->d.failed = 0;
+
+    size = size - sizeof(dl_pool);
+    p->max = (size < DL_MAX_ALLOC_FROM_POOL) ? size : DL_MAX_ALLOC_FROM_POOL;
+
+    p->current = p;
+    p->large = NULL;
+    p->log = log;
+    p->slab_pool = slab_pool;
+
+    return p;
+}
+
+
+void *
+dl_alloc_s(dl_slab_pool *slab_pool, size_t size, dl_log *log)
+{
+    void  *p;
+
+    p = dl_slab_alloc(slab_pool, size);
+    if (p == NULL) {
+        dl_log_error(DL_LOG_EMERG, log, "malloc failed size:%lu", size);
+    }
+
+    //printf("alloc:%p\n", p);
+
+    return p;
+}
+
+void
+dl_free_s(dl_slab_pool *slab_pool, void *buf){
+    //printf("free:%p\n", buf);
+    dl_slab_free(slab_pool, buf);
+    
 }

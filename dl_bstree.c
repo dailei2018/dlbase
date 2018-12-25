@@ -25,6 +25,24 @@ dl_bstree_node * dl_bstree_delete_by_key(dl_bstree *bst, long key)
     return bst->root;
 }
 
+dl_bstree_node * dl_bstree_find_by_key(dl_bstree *bst, long key)
+{
+    dl_bstree_node *cur = bst->root;
+    
+    while(1){
+        if(cur == NULL) break;
+        if(cur->key == key) return cur;
+        
+        if(cur->key > key){
+            cur = cur->left;
+        }else{
+            cur = cur->right;
+        }
+    }
+
+    return NULL;
+}
+
 static
 dl_bstree_node * dl_bstree_delete(dl_bstree_node *node, long key)
 {

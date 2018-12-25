@@ -30,6 +30,8 @@ struct _dl_pool {
     dl_pool             *current;   // current using pool
     dl_pool_large       *large;
     dl_log              *log;
+    
+    dl_slab_pool        *slab_pool;
 };
 
 dl_pool *dl_create_pool(size_t size, dl_log *log);
@@ -42,5 +44,12 @@ void *dl_pcalloc(dl_pool *pool, size_t size);
 void *dl_calloc(size_t size, dl_log *log);
 
 void dl_free(void *buf);
+
+
+/* slab */
+dl_pool *
+dl_create_pool_slab(dl_slab_pool *slab_pool, size_t size, dl_log *log);
+void * dl_alloc_s(dl_slab_pool *slab_pool, size_t size, dl_log *log);
+void dl_free_s(dl_slab_pool *slab_pool, void *buf);
 
 #endif

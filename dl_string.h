@@ -18,7 +18,7 @@ dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c);
 
 char *dl_pstrdup(dl_pool *pool, char *data, size_t len);
 char *dl_pstrdup_nt(dl_pool *pool, char *data, size_t len);
-
+int dl_atoi(char *line, size_t n);
 /*
  * debug
  */

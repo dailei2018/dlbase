@@ -5,6 +5,7 @@
 
 typedef struct _dl_pool dl_pool;
 typedef struct _dl_array dl_array;
+typedef struct _dl_slab_pool dl_slab_pool;
 
 #define  DL_OK          0
 #define  DL_ERROR      -1

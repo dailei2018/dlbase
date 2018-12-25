@@ -5,7 +5,7 @@
 
 
 typedef struct {
-    u_char      *addr;
+    char      *addr;
     size_t       size;
 
     char        *fname;
@@ -83,7 +83,7 @@ typedef struct {
 } dl_slab_stat;
 
 
-typedef struct {
+struct _dl_slab_pool{
     volatile ulong      lock;
 
     size_t              min_size;
@@ -106,10 +106,10 @@ typedef struct {
 
     void             *data;
     void             *addr;
-} dl_slab_pool;
+};
 
 
-void dl_shm_slab_init(dl_shm *shm);
+dl_slab_pool * dl_shm_slab_init(dl_shm *shm);
 void *
 dl_slab_alloc(dl_slab_pool *pool, size_t size);
 void *

@@ -59,15 +59,27 @@ int main(){
 
     dl_bstree_init(bst, dl_bstree_insert_value);
 
+    
 
-    person *p1 = new_p("Lily", 10);
-    person *p2 = new_p("Leo", 20);
-    person *p3 = new_p("David", 30);
+    person *p1 = new_p("Lily", 74244);
+    person *p2 = new_p("Leo", 100367);
+    person *p3 = new_p("David", 89170);
+    person *p4 = new_p("David", 83916);
+    person *p5 = new_p("David", 77088);
+    person *p6 = new_p("David", 17535);
+    
+    person *p7 = new_p("Lily", 96908);
+    person *p8 = new_p("Leo", 37415);
+    person *p9 = new_p("David", 44397);
+    person *p10 = new_p("David", 33469);
+    person *p11 = new_p("David", 102798);
+    person *p12 = new_p("David", 92781);
+    
+    person *p13 = new_p("Lily", 16033);
+    person *p14 = new_p("Leo", 94852);
+    person *p15 = new_p("David", 73988);
 
-    person *p4 = new_p("David", 25);
-    person *p5 = new_p("David", 24);
-
-    person *p6 = new_p("David", 40);
+    dl_bstree_node *node;
 
     dl_bstree_insert(bst, &p1->node);
     dl_bstree_insert(bst, &p2->node);
@@ -75,26 +87,19 @@ int main(){
     dl_bstree_insert(bst, &p4->node);
     dl_bstree_insert(bst, &p5->node);
     dl_bstree_insert(bst, &p6->node);
+    dl_bstree_insert(bst, &p7->node);
+    dl_bstree_insert(bst, &p8->node);
+    dl_bstree_insert(bst, &p9->node);
+    dl_bstree_insert(bst, &p10->node);
+    dl_bstree_insert(bst, &p11->node);
+    dl_bstree_insert(bst, &p12->node);
+    dl_bstree_insert(bst, &p13->node);
+    dl_bstree_insert(bst, &p14->node);
+    node = dl_bstree_insert(bst, &p15->node);
 
     dump_tree();
 
-    dl_bstree_delete_by_node(bst, &p6->node);
-    dump_tree();
-
-    dl_bstree_delete_by_node(bst, &p3->node);
-    dump_tree();
-
-    dl_bstree_delete_by_node(bst, &p1->node);
-    dump_tree();
-
-    dl_bstree_delete_by_node(bst, &p5->node);
-    dump_tree();
-
-    dl_bstree_delete_by_node(bst, &p4->node);
-    dump_tree();
-
-    dl_bstree_delete_by_node(bst, &p2->node);
-    dump_tree();
+    
 }
 
 

@@ -19,10 +19,15 @@ int main(){
 
     dl_slab_pool *sp = (dl_slab_pool *)shm->addr;
 
-    char *b1 = dl_slab_alloc(sp, 4096);
-    char *b2 = dl_slab_alloc(sp, 5096);
+    char *b1, *b2;
+    //char *b1 = dl_slab_alloc(sp, 4096);
+    //char *b2 = dl_slab_alloc(sp, 5096);
 
-    dl_slab_free(sp, b1);
-    dl_slab_free(sp, b2);
+    //dl_slab_free(sp, b1);
+    //dl_slab_free(sp, b2);
+
+    int i;
+    b1 = dl_slab_alloc(sp, 8);
+    b2 = dl_slab_alloc(sp, 8);
 
 }

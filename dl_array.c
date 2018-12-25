@@ -1,7 +1,5 @@
 #include "dl_base.h"
 
-static inline int dl_array_init(dl_array *array, dl_pool *pool, int n, size_t size);
-
 dl_array *
 dl_array_create(dl_pool *p, int n, size_t size)
 {
@@ -19,7 +17,7 @@ dl_array_create(dl_pool *p, int n, size_t size)
     return a;
 }
 
-static inline int
+int
 dl_array_init(dl_array *array, dl_pool *pool, int n, size_t size)
 {
     array->nelts = 0;
@@ -84,6 +82,7 @@ dl_array_push(dl_array *a)
              *
              */
             new = dl_palloc(p, 2 * size);
+
             if (new == NULL) {
                 return NULL;
             }

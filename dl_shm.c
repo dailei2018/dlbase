@@ -48,7 +48,7 @@ int dl_shm_init(dl_shm *shm){
     return 0;
 }
 
-void dl_shm_slab_init(dl_shm *shm){
+dl_slab_pool * dl_shm_slab_init(dl_shm *shm){
     dl_slab_pool *sp = (dl_slab_pool *)shm->addr;
 
     sp->end = shm->addr + shm->size;
@@ -56,6 +56,8 @@ void dl_shm_slab_init(dl_shm *shm){
     sp->addr = shm->addr;
 
     dl_slab_init(sp);
+    
+    return sp;
 }
 
 /*
@@ -219,7 +221,6 @@ dl_slab_alloc_locked(dl_slab_pool *pool, size_t size)
     if (page->next != page) {
 
         if (shift < dl_slab_exact_shift) {
-
             bitmap = (uintptr_t *) dl_slab_page_addr(pool, page);
 
             map = (dl_pagesize >> shift) / (sizeof(uintptr_t) * 8);
@@ -319,12 +320,20 @@ dl_slab_alloc_locked(dl_slab_pool *pool, size_t size)
         }
 
         //"dl_slab_alloc(): page is busy"
+        puts("dl_slab_alloc(): page is busy");
     }
 
     page = dl_slab_alloc_pages(pool, 1);
 
     if (page) {
         if (shift < dl_slab_exact_shift) {
+            /*
+             * here, let the requested size are 8 bytes, 4096/8 = 512,
+             * one page can contain 512 blocks.
+             * so we need 512 bits to record memory block(8 bytes) usage.
+             * 64-bit machine one pointer size is 8 bytes,64 bits.
+             * 512/64 = 8, so we need 8 pointers size
+             */
             bitmap = (uintptr_t *) dl_slab_page_addr(pool, page);
 
             n = (dl_pagesize >> shift) / ((1 << shift) * 8);
@@ -407,31 +416,34 @@ dl_slab_alloc_pages(dl_slab_pool *pool, uint pages)
 
     for (page = pool->free.next; page != &pool->free; page = page->next) {
 
-        // 是否有空闲的连续页
+        // enough free contiguous pages
         if (page->slab >= pages) {
 
-            // 空闲的连续页大于请求的页数
+            // free contiguous pages larger than requested pages
             if (page->slab > pages) {
 
                 /*
-                 * 最后一个空闲页 prev 存放分配后 第一个空闲页地址
+                 * the last free page(prev) point to the first free page
                  */
                 page[page->slab - 1].prev = (uintptr_t) &page[pages];
 
                 /*
-                 * 分配后， 第一个空闲页
+                 * first free page
                  */
                 page[pages].slab = page->slab - pages;
                 page[pages].next = page->next;
                 page[pages].prev = page->prev;
 
+                /*
+                 * isolate the current request pages
+                 */
                 p = (dl_slab_page *) page->prev;
                 p->next = &page[pages];
                 page->next->prev = (uintptr_t) &page[pages];
 
             } else {
                 /*
-                 * 空闲的连续页等于请求的页数
+                 * free contiguous pages equals requested pages
                  */
                 p = (dl_slab_page *) page->prev;
                 p->next = page->next;
@@ -440,23 +452,20 @@ dl_slab_alloc_pages(dl_slab_pool *pool, uint pages)
             }
 
             /*
-             * 标记页的属性
+             * set page properties
              */
             page->slab = pages | DL_SLAB_PAGE_START;
             page->next = NULL;
             page->prev = DL_SLAB_PAGE;
 
-            /*
-             * 剩余空闲页数
-             */
             pool->pfree -= pages;
 
-            /* 如果只有一个页， 直接返回 */
+            /* only request one page, just return */
             if (--pages == 0) {
                 return page;
             }
 
-            /* 如果申请了多个页， 那么第二个页到最后一个页坐下标记 */
+            /* request one more pages, set all these pages except the first one. */
             for (p = page + 1; pages; pages--) {
                 p->slab = DL_SLAB_PAGE_BUSY;
                 p->next = NULL;
@@ -469,7 +478,9 @@ dl_slab_alloc_pages(dl_slab_pool *pool, uint pages)
     }
 
     if (pool->log_nomem) {
+        puts("dl_slab_alloc() failed: no memory");
         //"dl_slab_alloc() failed: no memory"
+        //dl_log_error(DL_LOG_EMERG, pool->log, "dl_slab_alloc() failed: no memory");
     }
 
     return NULL;
@@ -573,6 +584,7 @@ dl_slab_free_locked(dl_slab_pool *pool, void *p)
         if (slab & m) {
             slot = dl_slab_exact_shift - pool->min_shift;
 
+            /*first free 64 bytes from a full page  */
             if (slab == DL_SLAB_BUSY) {
                 slots = dl_slab_slots(pool);
 
@@ -583,12 +595,15 @@ dl_slab_free_locked(dl_slab_pool *pool, void *p)
                 page->next->prev = (uintptr_t) page | DL_SLAB_EXACT;
             }
 
+            /* change one bit 1 to 0 */
             page->slab &= ~m;
 
+            /* page still in use */
             if (page->slab) {
                 goto done;
             }
 
+            /* all block freed, so we should free the whole page */
             dl_slab_free_pages(pool, page, 1);
 
             pool->stats[slot].total -= sizeof(uintptr_t) * 8;
@@ -640,25 +655,27 @@ dl_slab_free_locked(dl_slab_pool *pool, void *p)
 
     case DL_SLAB_PAGE:
 
-        // 检测4k对齐
+        /* 4K alignment */
         if ((uintptr_t) p & (dl_pagesize - 1)) {
             goto wrong_chunk;
         }
 
-        /* 不是内存页的开始 */
+        /* the first page */
         if (!(slab & DL_SLAB_PAGE_START)) {
             //dl_slab_error(pool, DL_LOG_ALERT,"dl_slab_free(): page is already free");
             goto fail;
         }
 
-        /* 分配内存页的中间位置 */
+        /* in use but not the first page */
         if (slab == DL_SLAB_PAGE_BUSY) {
             //dl_slab_error(pool, DL_LOG_ALERT, "dl_slab_free(): pointer to wrong page");
             goto fail;
         }
 
         n = ((char *) p - pool->start) >> dl_pagesize_shift;
-        size = slab & ~DL_SLAB_PAGE_START;  // 获取分配的页数
+
+        /* get the number of pages */
+        size = slab & ~DL_SLAB_PAGE_START;
 
         dl_slab_free_pages(pool, &pool->pages[n], size);
 
@@ -680,13 +697,13 @@ done:
     return;
 
 wrong_chunk:
-
+    puts("dl_slab_free(): pointer to wrong chunk");
     //dl_slab_error(pool, DL_LOG_ALERT,"dl_slab_free(): pointer to wrong chunk");
 
     goto fail;
 
 chunk_already_free:
-
+    puts("dl_slab_free(): chunk is already free");
     //dl_slab_error(pool, DL_LOG_ALERT,"dl_slab_free(): chunk is already free");
 
 fail:

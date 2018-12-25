@@ -51,4 +51,6 @@ dl_bstree_node *dl_bstree_next(dl_bstree *bst, dl_bstree_node *node);
 dl_bstree_node * dl_bstree_delete_by_key(dl_bstree *bst, long key);
 dl_bstree_node * dl_bstree_delete_by_node(dl_bstree *bst, dl_bstree_node *node);
 
+dl_bstree_node * dl_bstree_find_by_key(dl_bstree *bst, long key);
+
 #endif

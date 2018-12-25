@@ -14,13 +14,16 @@
 #define DL_LOG_DEBUG             8
 
 #define DL_MAX_ALLOC_FROM_POOL  (4096 - 1)
+#define DL_MAX_ERROR_STR_LEN    1024
 
 typedef struct _dl_log dl_log;
 struct _dl_log {
     int         log_level;
-    dl_file     *file;
+    dl_file     file;
 };
 
-void dl_log_error(int level, dl_log *log, ...);
+void dl_log_error(int level, dl_log *log, const char *format, ...);
+dl_log * dl_log_init(int level, char *fname);
+void dl_log_free(dl_log *log);
 
 #endif

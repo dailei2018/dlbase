@@ -18,12 +18,17 @@ dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c)
         if(cur == NULL) cur = end;
 
         el = dl_array_push(arr);
+        if(el == NULL) return NULL;
+        
+        
         el->len = cur - begin;
         el->data = begin;
 
         if(cur == end) break;
 
         begin = cur + 1;
+        
+        len = end - begin;
     }
 
     return arr;
@@ -74,4 +79,32 @@ dl_pstrdup_nt(dl_pool *pool, char *data, size_t len)
     dst[len] = '\0';
 
     return dst;
+}
+
+
+int
+dl_atoi(char *line, size_t n)
+{
+    int  value, cutoff, cutlim;
+
+    if (n == 0) {
+        return DL_ERROR;
+    }
+
+    cutoff = DL_INT32_MAX / 10;
+    cutlim = DL_INT32_MAX % 10;
+
+    for (value = 0; n--; line++) {
+        if (*line < '0' || *line > '9') {
+            return DL_ERROR;
+        }
+
+        if (value >= cutoff && (value > cutoff || *line - '0' > cutlim)) {
+            return DL_ERROR;
+        }
+
+        value = value * 10 + (*line - '0');
+    }
+
+    return value;
 }
