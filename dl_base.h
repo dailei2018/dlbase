@@ -26,6 +26,8 @@ typedef struct _dl_slab_pool dl_slab_pool;
 #include "dl_bstree.h"
 #include "dl_rbtree.h"
 #include "dl_shm.h"
+#include "dl_buf.h"
+#include "dl_inet.h"
 
 
 #endif

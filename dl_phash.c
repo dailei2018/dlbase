@@ -23,15 +23,24 @@ dl_phash_init(dl_pool *pool, uint slot, int type)
     return h;
 }
 
-int dl_phash_set_str(dl_hash *h, dl_str *k, dl_str *v){
+int dl_phash_set_str(dl_hash *h, char *data, int len, dl_str *v){
+    dl_str *k = dl_palloc(h->pool, sizeof(dl_str));
+    k->data = data;
+    k->len = len;
     return dl_phash_set(h, k, v, DL_STR);
 }
 
-int dl_phash_set_int(dl_hash *h, dl_str *k, long v){
+int dl_phash_set_int(dl_hash *h, char *data, int len, long v){
+    dl_str *k = dl_palloc(h->pool, sizeof(dl_str));
+    k->data = data;
+    k->len = len;
     return dl_phash_set(h, k, &v, DL_INT);
 }
 
-int dl_phash_set_void(dl_hash *h, dl_str *k, void *v){
+int dl_phash_set_void(dl_hash *h, char *data, int len, void *v){
+    dl_str *k = dl_palloc(h->pool, sizeof(dl_str));
+    k->data = data;
+    k->len = len;
     return dl_phash_set(h, k, v, DL_VOID);
 }
 

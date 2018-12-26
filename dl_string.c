@@ -35,7 +35,6 @@ dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c)
 
 char *dl_strnchr(char *str, int len, char c){
     char *cur;
-    int i;
 
     cur = str;
 

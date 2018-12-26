@@ -24,23 +24,41 @@ dl_hash_init(dl_pool *pool, uint slot, int type)
     return h;
 }
 
-int dl_hash_set_str(dl_hash *h, dl_str *k, dl_str *v){
-    return dl_hash_set(h, k, v, DL_STR, 0);
+int dl_hash_set_str(dl_hash *h, char *data, int len, dl_str *v){
+    dl_str str;
+    str.data = data;
+    str.len = len;
+    return dl_hash_set(h, &str, v, DL_STR, 0);
 }
-int dl_hash_set_int(dl_hash *h, dl_str *k, long v){
-    return dl_hash_set(h, k, &v, DL_INT, 0);
+int dl_hash_set_int(dl_hash *h, char *data, int len, long v){
+    dl_str str;
+    str.data = data;
+    str.len = len;
+    return dl_hash_set(h, &str, &v, DL_INT, 0);
 }
-int dl_hash_set_void(dl_hash *h, dl_str *k, void *v){
-    return dl_hash_set(h, k, v, DL_VOID, 0);
+int dl_hash_set_void(dl_hash *h, char *data, int len, void *v){
+    dl_str str;
+    str.data = data;
+    str.len = len;
+    return dl_hash_set(h, &str, v, DL_VOID, 0);
 }
-int dl_hash_set_str_rep(dl_hash *h, dl_str *k, dl_str *v){
-    return dl_hash_set(h, k, v, DL_STR, 1);
+int dl_hash_set_str_rep(dl_hash *h, char *data, int len, dl_str *v){
+    dl_str str;
+    str.data = data;
+    str.len = len;
+    return dl_hash_set(h, &str, v, DL_STR, 1);
 }
-int dl_hash_set_int_rep(dl_hash *h, dl_str *k, long v){
-    return dl_hash_set(h, k, &v, DL_INT, 1);
+int dl_hash_set_int_rep(dl_hash *h, char *data, int len, long v){
+    dl_str str;
+    str.data = data;
+    str.len = len;
+    return dl_hash_set(h, &str, &v, DL_INT, 1);
 }
-int dl_hash_set_void_rep(dl_hash *h, dl_str *k, void *v){
-    return dl_hash_set(h, k, v, DL_VOID, 1);
+int dl_hash_set_void_rep(dl_hash *h, char *data, int len, void *v){
+    dl_str str;
+    str.data = data;
+    str.len = len;
+    return dl_hash_set(h, &str, v, DL_VOID, 1);
 }
 
 static int dl_hash_set(dl_hash *h, dl_str *key, void *v, int type, int replace){

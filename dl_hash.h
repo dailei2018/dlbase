@@ -55,19 +55,19 @@ struct _dl_hash {
 };
 
 dl_hash *dl_phash_init(dl_pool *pool, uint slot, int type);
-int dl_phash_set_str(dl_hash *h, dl_str *k, dl_str *v);
-int dl_phash_set_int(dl_hash *h, dl_str *k, long v);
-int dl_phash_set_void(dl_hash *h, dl_str *k, void *v);
+int dl_phash_set_str(dl_hash *h, char *data, int len, dl_str *v);
+int dl_phash_set_int(dl_hash *h, char *data, int len, long v);
+int dl_phash_set_void(dl_hash *h, char *data, int len, void *v);
 
 
 dl_hash *
 dl_hash_init(dl_pool *pool, uint slot, int type);
-int dl_hash_set_str(dl_hash *h, dl_str *k, dl_str *v);
-int dl_hash_set_int(dl_hash *h, dl_str *k, long v);
-int dl_hash_set_void(dl_hash *h, dl_str *k, void *v);
-int dl_hash_set_str_rep(dl_hash *h, dl_str *k, dl_str *v);
-int dl_hash_set_int_rep(dl_hash *h, dl_str *k, long v);
-int dl_hash_set_void_rep(dl_hash *h, dl_str *k, void *v);
+int dl_hash_set_str(dl_hash *h, char *data, int len, dl_str *v);
+int dl_hash_set_int(dl_hash *h, char *data, int len, long v);
+int dl_hash_set_void(dl_hash *h, char *data, int len, void *v);
+int dl_hash_set_str_rep(dl_hash *h, char *data, int len, dl_str *v);
+int dl_hash_set_int_rep(dl_hash *h, char *data, int len, long v);
+int dl_hash_set_void_rep(dl_hash *h, char *data, int len, void *v);
 
 void free_hash(dl_hash *h);
 
