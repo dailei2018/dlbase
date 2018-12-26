@@ -45,7 +45,6 @@ void *dl_calloc(size_t size, dl_log *log);
 
 void dl_free(void *buf);
 
-
 /* slab */
 dl_pool *
 dl_create_pool_slab(dl_slab_pool *slab_pool, size_t size, dl_log *log);

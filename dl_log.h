@@ -14,6 +14,7 @@
 #define DL_LOG_DEBUG             8
 
 #define DL_MAX_ALLOC_FROM_POOL  (4096 - 1)
+
 #define DL_MAX_ERROR_STR_LEN    1024
 
 typedef struct _dl_log dl_log;

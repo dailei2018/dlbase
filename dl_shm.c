@@ -48,7 +48,8 @@ int dl_shm_init(dl_shm *shm){
     return 0;
 }
 
-dl_slab_pool * dl_shm_slab_init(dl_shm *shm){
+dl_slab_pool * dl_shm_slab_init(dl_shm *shm)
+{
     dl_slab_pool *sp = (dl_slab_pool *)shm->addr;
 
     sp->end = shm->addr + shm->size;
@@ -320,7 +321,8 @@ dl_slab_alloc_locked(dl_slab_pool *pool, size_t size)
         }
 
         //"dl_slab_alloc(): page is busy"
-        puts("dl_slab_alloc(): page is busy");
+        //puts("dl_slab_alloc(): page is busy");
+
     }
 
     page = dl_slab_alloc_pages(pool, 1);

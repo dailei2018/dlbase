@@ -17,6 +17,7 @@ dl_array_create(dl_pool *p, int n, size_t size)
     return a;
 }
 
+
 int
 dl_array_init(dl_array *array, dl_pool *pool, int n, size_t size)
 {

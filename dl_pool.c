@@ -10,6 +10,7 @@ dl_create_pool(size_t size, dl_log *log)
     dl_pool  *p;
 
     p = dl_alloc(size, log);
+
     if (p == NULL) {
         dl_log_error(DL_LOG_EMERG, log, "malloc failed size:%lu", size);
         return NULL;
@@ -260,7 +261,6 @@ dl_calloc(size_t size, dl_log *log)
 
 void
 dl_free(void *buf){
-
     //printf("free:%p\n", buf);
 
     free(buf);

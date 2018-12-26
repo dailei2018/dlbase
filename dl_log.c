@@ -60,3 +60,4 @@ void dl_log_free(dl_log *log){
     free(log->file.name.data);
     free(log);
 }
+

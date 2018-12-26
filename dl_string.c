@@ -20,7 +20,6 @@ dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c)
         el = dl_array_push(arr);
         if(el == NULL) return NULL;
         
-        
         el->len = cur - begin;
         el->data = begin;
 
@@ -80,7 +79,6 @@ dl_pstrdup_nt(dl_pool *pool, char *data, size_t len)
 
     return dst;
 }
-
 
 int
 dl_atoi(char *line, size_t n)
