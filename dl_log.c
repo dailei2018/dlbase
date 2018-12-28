@@ -11,37 +11,30 @@ void dl_log_error(int level, dl_log *log, const char *format, ...){
 
     va_list         args;
     int             len,s;
-    char            buffer[DL_MAX_ERROR_STR_LEN];
+    char            buffer[DL_MAX_ERROR_STR_LEN], *cur, *last;
     
     va_start(args, format);
     
+    cur = buffer;
+    last = buffer + DL_MAX_ERROR_STR_LEN - 1;
     
-    /* set time */
-    char buf[64];
-    char *cur = buf;
     struct tm *tm1;
     
     time_t sec = time(NULL);
     tm1 = localtime(&sec);
     strftime(cur, 20, "%Y-%m-%d %H:%M:%S", tm1);
     cur += 19;
-    sprintf(cur, " \- %s: ", level_str[log->log_level]);
     
-    len = strlen(buf);
+    cur = dl_sprintf(cur, " \- %s: ", level_str[log->log_level]);
+    cur = dl_vslprintf(cur, last, format, args);
+    *cur++ = '\n';
     
-    cur = buffer;
-    memcpy(cur, buf, len);
-    cur += len;
-    
-    vsnprintf(cur, DL_MAX_ERROR_STR_LEN-len-1, format, args);
-    strcat(buffer, "\n");
-    
-    write(log->file.fd, buffer, strlen(buffer));
+    write(log->file.fd, buffer, cur - buffer);
     
 }
 
 dl_log * dl_log_init(int level, char *fname){
-    dl_log *log = malloc(sizeof(log));
+    dl_log *log = malloc(sizeof(dl_log));
     if(log == NULL) return NULL;
     
     log->log_level = level;

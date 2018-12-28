@@ -40,6 +40,13 @@ typedef unsigned short  ushort;
 typedef unsigned int    uint;
 typedef unsigned long   ulong;
 
+#define LF     '\n'
+#define CR     '\r'
+#define CRLF   "\r\n"
+
+
+#define dl_abs(value)       (((value) >= 0) ? (value) : - (value))
+#define dl_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
 #define dl_max(a,b) (a > b ? a : b);
 
 #define dl_offset_data(q, type, link)               \
