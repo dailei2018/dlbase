@@ -10,6 +10,7 @@
 #include <stdint.h>     //for uintptr_t
 
 #include <time.h>
+#include <sys/time.h>
 
 #include <stddef.h>     //for offsetof
 #include <fcntl.h>      //for open

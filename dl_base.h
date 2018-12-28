@@ -28,6 +28,7 @@ typedef struct _dl_slab_pool dl_slab_pool;
 #include "dl_shm.h"
 #include "dl_buf.h"
 #include "dl_inet.h"
+#include "dl_time.h"
 
 
 #endif

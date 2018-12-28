@@ -27,4 +27,6 @@ void dl_log_error(int level, dl_log *log, const char *format, ...);
 dl_log * dl_log_init(int level, char *fname);
 void dl_log_free(dl_log *log);
 
+void exit_log(int err, int level, dl_log *log, const char *fmt, ...);
+
 #endif

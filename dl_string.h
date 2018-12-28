@@ -14,6 +14,7 @@ struct _dl_str{
 
 #define dl_string(str)     { sizeof(str) - 1, (char *) str};
 
+void exit_msg(int err, const char *fmt, ...);
 void dl_printf(const char *fmt, ...);
 char * dl_sprintf(char *buf, const char *fmt, ...);
 char * dl_snprintf(char *buf, size_t max, const char *fmt, ...);

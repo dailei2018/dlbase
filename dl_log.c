@@ -1,5 +1,7 @@
 #include "dl_base.h"
 
+static void dl_log_core(int level, dl_log *log, const char *format, va_list args);
+
 static char *level_str[] = {
     "stderr", "emerg", "alert",
     "crit", "err", "warn", "notice",
@@ -8,12 +10,18 @@ static char *level_str[] = {
 
 void dl_log_error(int level, dl_log *log, const char *format, ...){
     if(log == NULL || level > log->log_level) return;
-
-    va_list         args;
-    int             len,s;
-    char            buffer[DL_MAX_ERROR_STR_LEN], *cur, *last;
+    
+    va_list args;
     
     va_start(args, format);
+    dl_log_core(level, log, format, args);
+    
+}
+
+static void dl_log_core(int level, dl_log *log, const char *format, va_list args)
+{
+    int             len,s;
+    char            buffer[DL_MAX_ERROR_STR_LEN], *cur, *last;
     
     cur = buffer;
     last = buffer + DL_MAX_ERROR_STR_LEN - 1;
@@ -30,7 +38,6 @@ void dl_log_error(int level, dl_log *log, const char *format, ...){
     *cur++ = '\n';
     
     write(log->file.fd, buffer, cur - buffer);
-    
 }
 
 dl_log * dl_log_init(int level, char *fname){
@@ -54,3 +61,15 @@ void dl_log_free(dl_log *log){
     free(log);
 }
 
+
+void exit_log(int err, int level, dl_log *log, const char *fmt, ...)
+{
+    if(log == NULL) return;
+    
+    va_list args;
+    
+    va_start(args, fmt);
+    dl_log_core(level, log, fmt, args);
+    
+    exit(err);
+}

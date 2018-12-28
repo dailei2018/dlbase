@@ -1,5 +1,6 @@
 #include "dl_base.h"
 
+static void dl_printf_core(const char *fmt, va_list args);
 static char *
 dl_sprintf_num(char *buf, char *last, uint64_t ui64, char zero,
                uint hexadecimal, uint width);
@@ -131,12 +132,27 @@ dl_atoi(char *line, size_t n)
     printf
 */
 
-void dl_printf(const char *fmt, ...){
-    char        *p;
-    char        buf[1024];
+void exit_msg(int err, const char *fmt, ...){
     va_list     args;
     
     va_start(args, fmt);
+    dl_printf_core(fmt, args);
+    
+    exit(err);
+}
+
+void dl_printf(const char *fmt, ...)
+{
+    va_list     args;
+    
+    va_start(args, fmt);
+    dl_printf_core(fmt, args);
+}
+
+static void dl_printf_core(const char *fmt, va_list args){
+    char        *p;
+    char        buf[1024];
+    
     p = dl_vslprintf(buf, buf+1023, fmt, args);
     va_end(args);
     
