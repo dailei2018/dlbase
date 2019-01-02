@@ -72,7 +72,13 @@ dl_array_push(dl_array *a)
              * the array allocation is the last in the pool
              * and there is space for new allocation
              */
-
+            
+            /*
+                if possible, no other memory allocation between dl_array_create and dl_array_push,
+                and enough space left,
+                it would be more efficient, because we just move the pointer.
+            */
+            
             // expand one array element size
             p->d.last += a->size;
             a->nalloc++;

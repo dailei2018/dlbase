@@ -1,6 +1,6 @@
 CC =	cc
 CFLAGS =  -pipe  -O0 -g3 -fPIC #-DDL_MEM_DEBUG
-MY_CFLAGS = 
+MY_CFLAGS = -I dlre -I ./
 
 XLIBS = -shared
 
@@ -15,11 +15,11 @@ binary:	libdlbase.so
 
 libdlbase.so:	dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o dl_queue.o \
 				dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o dl_inet.o \
-				dl_time.o
+				dl_time.o dlre/dl_pcre.o
 	
 	$(LINK) -o libdlbase.so dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o \
 			   dl_queue.o dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o \
-			   dl_inet.o dl_time.o \
+			   dl_inet.o dl_time.o dlre/dl_pcre.o \
 			   $(XLIBS)	
 	
 	rm -f `find ./ -name '*.o'`
@@ -70,6 +70,9 @@ dl_inet.o:
 
 dl_time.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dl_time.o dl_time.c
+
+dlre/dl_pcre.o:
+	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dlre/dl_pcre.o dlre/dl_pcre.c
 
 clean:
 	rm -f `find ./ -name '*.o'`

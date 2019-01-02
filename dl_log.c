@@ -33,7 +33,7 @@ static void dl_log_core(int level, dl_log *log, const char *format, va_list args
     strftime(cur, 20, "%Y-%m-%d %H:%M:%S", tm1);
     cur += 19;
     
-    cur = dl_sprintf(cur, " \- %s: ", level_str[log->log_level]);
+    cur = dl_sprintf(cur, " \\- %s: ", level_str[log->log_level]);
     cur = dl_vslprintf(cur, last, format, args);
     *cur++ = '\n';
     

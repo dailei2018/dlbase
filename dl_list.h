@@ -3,7 +3,6 @@
 
 #include "dl_base.h"
 
-typedef struct _dl_list dl_list;
 typedef struct _dl_list_part dl_list_part;
 
 /*
@@ -26,5 +25,7 @@ struct _dl_list{
 };
 
 dl_list *dl_list_create(dl_pool *pool, int n, size_t size);
+
+void *dl_list_push(dl_list *l);
 
 #endif

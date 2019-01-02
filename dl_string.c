@@ -5,10 +5,9 @@ static char *
 dl_sprintf_num(char *buf, char *last, uint64_t ui64, char zero,
                uint hexadecimal, uint width);
 
-dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c)
+dl_array * dl_split_by_c(dl_pool *p, dl_str *str, char c)
 {
-    if(str == NULL || arr == NULL) return NULL;
-
+    dl_array    *arr;
     char *begin,*end,*cur;
     int len;
 
@@ -17,6 +16,9 @@ dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c)
     len = str->len;
 
     dl_str *el;
+
+    arr = dl_array_create(p, 1, sizeof(dl_str));
+    if(arr == NULL) return NULL;
 
     for(;;){
         cur = dl_strnchr(begin, len, c);
@@ -126,6 +128,181 @@ dl_atoi(char *line, size_t n)
     }
 
     return value;
+}
+
+
+/*
+    substring
+*/
+
+char *
+dl_strnstr(char *s1, size_t len,  char *s2, size_t len_1)
+{
+    if(len_1 == 0){
+        return NULL;
+    }
+    
+    char  c1, c2;
+    size_t  n;
+
+    c2 = *s2++;
+
+    n = len_1 - 1;
+
+    do {
+        do {
+            if (len-- == 0) {
+                return NULL;
+            }
+
+            c1 = *s1++;
+
+            if (c1 == 0) {
+                return NULL;
+            }
+
+        } while (c1 != c2);
+
+        if (n > len) {
+            return NULL;
+        }
+
+    } while (memcmp(s1, s2, n) != 0);
+
+    return --s1;
+}
+
+int
+dl_substr_num(char *s1, size_t len,  char *s2, size_t len_1)
+{
+    int     n = 0;
+    char    *res;
+    
+    while((res = dl_strnstr(s1, len, s2, len_1)) != NULL){
+        n++;
+        
+        len -= res - s1 + len_1;
+        s1 = res + len_1;
+        
+        if(len < len_1) break;
+    }
+    
+    return n;
+}
+
+dl_array * dl_split_by_s(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1)
+{
+    dl_array *arr;
+
+    char    *res;
+    dl_str  *str;
+
+    arr = dl_array_create(p, 1, sizeof(dl_str));
+    if(arr == NULL) return NULL;
+
+    while((res = dl_strnstr(s1, len, s2, len_1)) != NULL){
+        str = dl_array_push(arr);
+        if(str == NULL) return NULL;
+        
+        str->data = s1;
+        str->len = res - s1;
+        
+        len -= res - s1 + len_1;
+        s1 = res + len_1;
+        
+    }
+    
+    str = dl_array_push(arr);
+    str->data = s1;
+    str->len = len;
+
+    return arr;
+}
+
+dl_list * dl_split_by_s_l(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1)
+{
+    dl_list *list;
+
+    char    *res;
+    dl_str  *str;
+
+    list = dl_list_create(p, 1, sizeof(dl_str));
+    if(list == NULL) return NULL;
+
+    while((res = dl_strnstr(s1, len, s2, len_1)) != NULL){
+        str = dl_list_push(list);
+        if(str == NULL) return NULL;
+        
+        str->data = s1;
+        str->len = res - s1;
+        
+        len -= res - s1 + len_1;
+        s1 = res + len_1;
+        
+    }
+    
+    str = dl_list_push(list);
+    str->data = s1;
+    str->len = len;
+
+    return list;
+}
+
+/*
+    string replace
+*/
+
+dl_str *
+dl_str_replace(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1, char *s3, size_t len_2){
+    dl_pool     *tmp_p;
+    dl_str      *str, *res_s;
+    char        *res, *cur;
+    dl_list     *list;
+    dl_list_part    *part;
+    
+    int         total = 0;
+    
+    tmp_p = dl_create_pool(1024, NULL);
+    if(tmp_p == NULL) return NULL;
+    
+    list = dl_list_create(tmp_p, 1, sizeof(dl_str));
+    if(list == NULL) return NULL;
+    
+    while((res = dl_strnstr(s1, len, s2, len_1)) != NULL){
+        str = dl_list_push(list);
+        str->data = s1;
+        str->len = res - s1;
+        
+        len -= res - s1 + len_1;
+        s1 = res + len_1;
+        
+        total += str->len + len_2;
+    }
+    
+    str = dl_list_push(list);
+    str->data = s1;
+    str->len = len;
+    
+    total += str->len;
+    
+    res_s = dl_palloc(p, sizeof(dl_str));
+    res_s->data = dl_palloc(p, total);
+    res_s->len = total;
+    cur = res_s->data;
+    
+    for(part = &list->part; part; part = part->next){
+        str = part->elts;
+        
+        cur = dl_cpymem(cur, str->data, str->len);
+        
+        if(part != list->last){
+            cur = dl_cpymem(cur, s3, len_2);
+        }
+    }
+    
+    dl_destroy_pool(tmp_p);
+    
+    return res_s;
 }
 
 /*

@@ -21,8 +21,16 @@ char * dl_snprintf(char *buf, size_t max, const char *fmt, ...);
 char * dl_slprintf(char *buf, char *last, const char *fmt, ...);
 char * dl_vslprintf(char *buf, char *last, const char *fmt, va_list args);
 
-char *dl_strnchr(char *str, int len, char c);
-dl_array * dl_split_by_c(dl_array *arr, dl_str *str, char c);
+char * dl_strnchr(char *str, int len, char c);
+dl_array * dl_split_by_c(dl_pool *p, dl_str *str, char c);
+
+char * dl_strnstr(char *s1, size_t len,  char *s2, size_t len_1);
+int dl_substr_num(char *s1, size_t len,  char *s2, size_t len_1);
+dl_array * dl_split_by_s(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1);
+dl_list * dl_split_by_s_l(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1);
+
+dl_str *
+dl_str_replace(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1, char *s3, size_t len_2);
 
 char *dl_pstrdup(dl_pool *pool, char *data, size_t len);
 char *dl_pstrdup_nt(dl_pool *pool, char *data, size_t len);
