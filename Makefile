@@ -1,8 +1,8 @@
 CC =	cc
 CFLAGS =  -pipe  -O0 -g3 -fPIC #-DDL_MEM_DEBUG
-MY_CFLAGS = -I dlre -I ./
+MY_CFLAGS = -I re -I ./
 
-XLIBS = -shared
+XLIBS = -shared -lpcre2-8
 
 LINK =	$(CC)
 
@@ -15,16 +15,16 @@ binary:	libdlbase.so
 
 libdlbase.so:	dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o dl_queue.o \
 				dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o dl_inet.o \
-				dl_time.o dlre/dl_pcre.o
+				dl_time.o re/dl_pcre2.o
 	
 	$(LINK) -o libdlbase.so dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o \
 			   dl_queue.o dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o \
-			   dl_inet.o dl_time.o dlre/dl_pcre.o \
+			   dl_inet.o dl_time.o re/dl_pcre2.o \
 			   $(XLIBS)	
 	
 	rm -f `find ./ -name '*.o'`
 	cp libdlbase.so /usr/lib/x86_64-linux-gnu/
-	cp *.h /usr/include/dlbase/
+	cp *.h re/*.h /usr/include/dlbase/
 
 dl_file.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dl_file.o dl_file.c
@@ -71,8 +71,8 @@ dl_inet.o:
 dl_time.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dl_time.o dl_time.c
 
-dlre/dl_pcre.o:
-	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dlre/dl_pcre.o dlre/dl_pcre.c
+re/dl_pcre2.o:
+	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o re/dl_pcre2.o re/dl_pcre2.c
 
 clean:
 	rm -f `find ./ -name '*.o'`

@@ -21,10 +21,12 @@ struct _dl_list{
     dl_list_part     part;
     size_t           size;      // element size
     int              nalloc;    // every part can contain nalloc element
+    int              nelts;      // total elements
     dl_pool         *pool;
 };
 
 dl_list *dl_list_create(dl_pool *pool, int n, size_t size);
+int dl_list_init(dl_list *list, dl_pool *pool, int n, size_t size);
 
 void *dl_list_push(dl_list *l);
 

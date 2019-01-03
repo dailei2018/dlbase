@@ -253,7 +253,7 @@ dl_list * dl_split_by_s_l(dl_pool *p, char *s1, size_t len, char *s2, size_t len
 */
 
 dl_str *
-dl_str_replace(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1, char *s3, size_t len_2){
+dl_str_replace(dl_pool *p, char *s1, size_t len, char *s2, size_t len_2, char *s3, size_t len_3){
     dl_pool     *tmp_p;
     dl_str      *str, *res_s;
     char        *res, *cur;
@@ -268,15 +268,15 @@ dl_str_replace(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1, char *s
     list = dl_list_create(tmp_p, 1, sizeof(dl_str));
     if(list == NULL) return NULL;
     
-    while((res = dl_strnstr(s1, len, s2, len_1)) != NULL){
+    while((res = dl_strnstr(s1, len, s2, len_2)) != NULL){
         str = dl_list_push(list);
         str->data = s1;
         str->len = res - s1;
         
-        len -= res - s1 + len_1;
-        s1 = res + len_1;
+        len -= res - s1 + len_2;
+        s1 = res + len_2;
         
-        total += str->len + len_2;
+        total += str->len + len_3;
     }
     
     str = dl_list_push(list);
@@ -296,7 +296,7 @@ dl_str_replace(dl_pool *p, char *s1, size_t len, char *s2, size_t len_1, char *s
         cur = dl_cpymem(cur, str->data, str->len);
         
         if(part != list->last){
-            cur = dl_cpymem(cur, s3, len_2);
+            cur = dl_cpymem(cur, s3, len_3);
         }
     }
     

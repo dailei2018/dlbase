@@ -30,6 +30,7 @@ typedef struct _dl_slab_pool dl_slab_pool;
 #include "dl_buf.h"
 #include "dl_inet.h"
 #include "dl_time.h"
+#include "dl_pcre2.h"
 
 
 #endif

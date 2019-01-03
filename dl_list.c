@@ -1,6 +1,6 @@
 #include "dl_base.h"
 
-static inline int
+int
 dl_list_init(dl_list *list, dl_pool *pool, int n, size_t size)
 {
     list->part.elts = dl_palloc(pool, n * size);
@@ -13,6 +13,7 @@ dl_list_init(dl_list *list, dl_pool *pool, int n, size_t size)
     list->last = &list->part;
     list->size = size;
     list->nalloc = n;
+    list->nelts = 0;
     list->pool = pool;
 
     return DL_OK;
@@ -69,6 +70,8 @@ dl_list_push(dl_list *l)
 
     elt = (char *) last->elts + l->size * last->nelts;
     last->nelts++;
+
+    l->nelts++;
 
     return elt;
 }

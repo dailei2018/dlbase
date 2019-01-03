@@ -20,6 +20,9 @@
 
 #include <netinet/in.h>
 
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include "pcre2.h"
+
 #define DL_INT8_LEN   (sizeof("-127") - 1)
 #define DL_INT16_LEN   (sizeof("-32768") - 1)
 #define DL_INT32_LEN   (sizeof("-2147483648") - 1)
