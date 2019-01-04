@@ -197,7 +197,8 @@ dl_str_capture_re(dl_pool *p, char *s1, size_t len,
     offset = 0;
     option = 0;
     
-    if(all == 1){
+    if(all == DL_CAPTURE_ALL){
+        /* loop capture */
         list = dl_list_create(p, 1, sizeof(void *));
         if(list == NULL) return NULL;
         
@@ -221,6 +222,7 @@ dl_str_capture_re(dl_pool *p, char *s1, size_t len,
         }
         
     }else{
+        /* capture once */
         list = dl_list_create(p, 1, sizeof(dl_str));
         if(list == NULL) return NULL;
         

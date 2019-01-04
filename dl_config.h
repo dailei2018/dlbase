@@ -23,7 +23,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include "pcre2.h"
 
-#define DL_INT8_LEN   (sizeof("-127") - 1)
+#define DL_INT8_LEN   (sizeof("-128") - 1)
 #define DL_INT16_LEN   (sizeof("-32768") - 1)
 #define DL_INT32_LEN   (sizeof("-2147483648") - 1)
 #define DL_INT64_LEN   (sizeof("-9223372036854775808") - 1)
@@ -34,10 +34,10 @@
 #define DL_INT64_MAX 9223372036854775807
 
 
-#define DL_UINT8_MAX 256
-#define DL_UINT16_MAX 65535
-#define DL_UINT32_MAX 4294967295
-#define DL_UINT64_MAX 18446744073709551615
+#define DL_UINT8_MAX    255
+#define DL_UINT16_MAX   65535
+#define DL_UINT32_MAX   4294967295
+#define DL_UINT64_MAX   18446744073709551615
 
 typedef unsigned char   uchar;
 typedef unsigned short  ushort;

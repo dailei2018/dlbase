@@ -3,6 +3,8 @@
 
 #include "dl_base.h"
 
+#define DL_CAPTURE_ONE  0
+#define DL_CAPTURE_ALL  1
 #define dl_free_re(re) pcre2_code_free(re)
 
 pcre2_code *dl_compile_re(char *pattern, size_t len, dl_log *log);

@@ -20,6 +20,7 @@ typedef struct _dl_slab_pool dl_slab_pool;
 #include "dl_file.h"
 #include "dl_log.h"
 #include "dl_pool.h"
+#include "dl_table.h"
 #include "dl_array.h"
 #include "dl_list.h"
 #include "dl_queue.h"
@@ -31,6 +32,6 @@ typedef struct _dl_slab_pool dl_slab_pool;
 #include "dl_inet.h"
 #include "dl_time.h"
 #include "dl_pcre2.h"
-
+#include "dl_math.h"
 
 #endif
