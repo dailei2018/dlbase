@@ -271,7 +271,9 @@ dl_hash_key(uchar *data, size_t len)
     uint i, key;
 
     key = 0;
-
+    
+    len = len > 20 ? 20 : len;
+    
     for (i = 0; i < len; i++) {
         key = key * 31 + data[i];
     }

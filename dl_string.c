@@ -1,6 +1,5 @@
 #include "dl_base.h"
 
-static void dl_printf_core(const char *fmt, va_list args);
 static char *
 dl_sprintf_num(char *buf, char *last, uint64_t ui64, char zero,
                uint hexadecimal, uint width);
@@ -309,7 +308,7 @@ dl_str_replace(dl_pool *p, char *s1, size_t len, char *s2, size_t len_2, char *s
     printf
 */
 
-void exit_msg(int err, const char *fmt, ...){
+void dl_exit_msg(int err, const char *fmt, ...){
     va_list     args;
     
     va_start(args, fmt);
@@ -326,7 +325,7 @@ void dl_printf(const char *fmt, ...)
     dl_printf_core(fmt, args);
 }
 
-static void dl_printf_core(const char *fmt, va_list args){
+void dl_printf_core(const char *fmt, va_list args){
     char        *p;
     char        buf[1024];
     
