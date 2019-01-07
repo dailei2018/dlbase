@@ -24,11 +24,12 @@ enum {
 };
 */
 
+typedef void (*dl_t_void_replace_pt)(void *v);
+
 typedef struct _dl_key_l    dl_key_l;
 typedef struct _dl_value_l  dl_value_l;
 typedef struct _dl_node_l   dl_node_l;
 typedef struct _dl_table    dl_table;
-
 
 struct _dl_key_l{
     union{
@@ -57,9 +58,7 @@ struct _dl_node_l {
 };
 
 struct _dl_table {
-    dl_pool             *pool;
-    dl_pool             *arr_p;
-    dl_pool             *node_p;
+    dl_log              *log;
     
     uchar                lsizenode;  /* log2 of size of `node' array */
 
@@ -69,34 +68,29 @@ struct _dl_table {
     dl_node_l           *node;
     dl_node_l           *lastfree;  /* any free position is before this position */
     
-    int                 err;
+    dl_t_void_replace_pt    void_h;
 };
 
-
-dl_table *dl_table_new(dl_pool *pool,int narray, int nhash);
+dl_table *dl_table_new(dl_log *log,int narray, int nhash, dl_t_void_replace_pt h);
 void dl_table_destroy(dl_table *t);
 dl_value_l *dl_find_by_index(dl_table *t, long index);
 
-dl_value_l * dl_try_array_set_int_l(dl_table *t, long index, long value);
-int dl_array_set_int_l(dl_table *t, dl_value_l *v, long value);
-
-dl_value_l * dl_try_array_set_str_l(dl_table *t, long index, char *str, size_t len);
-int dl_array_set_str_l(dl_table *t, dl_value_l *v, char *str, size_t len);
-
-dl_value_l * dl_try_array_set_void_l(dl_table *t, long index, void *value);
-int dl_array_set_void_l(dl_table *t, dl_value_l *v, void *value);
+int dl_array_set_int_l(dl_table *t, long index, long value);
+int dl_array_set_str_l(dl_table *t, long index, char *str, size_t len);
+int dl_array_set_void_l(dl_table *t, long index, void *value);
 
 /* node */
 
-dl_value_l * dl_try_node_set_int_l(dl_table *t, char *str, size_t len, long value);
-int dl_node_set_int_l(dl_table *t, dl_value_l *v, long value);
-
-dl_value_l * dl_try_node_set_str_l(dl_table *t, char *str, size_t len, char *v_str, size_t v_len);
-int dl_node_set_str_l(dl_table *t, dl_value_l *v, char *str, size_t len);
-
-dl_value_l * dl_try_node_set_void_l(dl_table *t, char *str, size_t len, void *value);
-int dl_node_set_void_l(dl_table *t, dl_value_l *v, void *value);
+int dl_node_set_int_l(dl_table *t, char *str, size_t len, long value);
+int dl_node_set_str_l(dl_table *t, char *str, size_t len, char *v_str, size_t v_len);
+int dl_node_set_void_l(dl_table *t, char *str, size_t len, void *value);
 
 dl_value_l *dl_find_by_str(dl_table *t, char *str, size_t len);
+
+void dl_del_key_index_l(dl_table *t, long index);
+void dl_del_key_str_l(dl_table *t, char *str, size_t len);
+
+/* debug */
+void dl_dump_talbe_l(dl_table *t);
 
 #endif
