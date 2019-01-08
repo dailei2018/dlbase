@@ -1,3 +1,10 @@
+/*
+    support one key, multiple value -- H_LIST
+    support replacement.
+    support delete key.
+    node length can not be changed
+*/
+
 #ifndef __DL_HASH
 #define __DL_HASH
 
@@ -7,15 +14,14 @@
 
 #define H_UNIQUE    1
 #define H_LIST      2
-#define P_HASH      128
 
-#define PH_UNIQUE   (H_UNIQUE | P_HASH)
-#define PH_LIST     (H_LIST | P_HASH)
+typedef void (*dl_h_void_replace_pt)(void *v);
 
 enum {
-    DL_INT = 1,
-    DL_STR,
-    DL_VOID
+    DL_H_NULL,
+    DL_H_INT,
+    DL_H_STR,
+    DL_H_VOID
 };
 
 typedef struct _dl_hash     dl_hash;
@@ -46,33 +52,35 @@ struct _dl_node{
 };
 
 struct _dl_hash {
-    dl_pool *pool;
-    int slot_total;
-    int el_sum;
-    int flag;
-
-    dl_node *node;
+    dl_log      *log;
+    int         slot_total;
+    int         el_sum;
+    int         flag;
+    
+    dl_h_void_replace_pt    void_h;     //will be called before custom data replaced or deleted
+    
+    dl_node     *node;
 };
-
-dl_hash *dl_phash_init(dl_pool *pool, uint slot, int type);
-int dl_phash_set_str(dl_hash *h, char *data, int len, dl_str *v);
-int dl_phash_set_int(dl_hash *h, char *data, int len, long v);
-int dl_phash_set_void(dl_hash *h, char *data, int len, void *v);
 
 
 dl_hash *
-dl_hash_init(dl_pool *pool, uint slot, int type);
-int dl_hash_set_str(dl_hash *h, char *data, int len, dl_str *v);
-int dl_hash_set_int(dl_hash *h, char *data, int len, long v);
-int dl_hash_set_void(dl_hash *h, char *data, int len, void *v);
-int dl_hash_set_str_rep(dl_hash *h, char *data, int len, dl_str *v);
-int dl_hash_set_int_rep(dl_hash *h, char *data, int len, long v);
-int dl_hash_set_void_rep(dl_hash *h, char *data, int len, void *v);
+dl_hash_init(dl_log *log, uint slot, dl_h_void_replace_pt handler, int type);
+int dl_hash_set_str(dl_hash *h, char *k, size_t len_k, char *v, size_t len_v);
+int dl_hash_set_int(dl_hash *h, char *k, size_t len_k, long v);
+int dl_hash_set_void(dl_hash *h, char *k, size_t len_k, void *v);
 
-void free_hash(dl_hash *h);
+int dl_hash_set_str_rep(dl_hash *h, char *k, size_t len_k, char *v, size_t len_v);
+int dl_hash_set_int_rep(dl_hash *h, char *k, size_t len_k, long v);
+int dl_hash_set_void_rep(dl_hash *h, char *k, size_t len_k, void *v);
 
-dl_hash_v * dl_hash_get(dl_hash *h, char *data, int len);
+
+dl_hash_v * dl_hash_find(dl_hash *h, char *data, int len);
 uint dl_hash_key(uchar *data, size_t len);
+
+void dl_hash_del(dl_hash *h, char *key, size_t len);
+void dl_hash_destroy(dl_hash *h);
+
+void dl_dump_hash(dl_hash *h);
 
 /*
  * debug

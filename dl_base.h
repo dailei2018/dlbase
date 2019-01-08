@@ -25,6 +25,7 @@ typedef struct _dl_slab_pool dl_slab_pool;
 #include "dl_list.h"
 #include "dl_queue.h"
 #include "dl_hash.h"
+#include "dl_phash.h"
 #include "dl_bstree.h"
 #include "dl_rbtree.h"
 #include "dl_shm.h"

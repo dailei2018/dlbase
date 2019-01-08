@@ -49,6 +49,8 @@ void dl_table_destroy(dl_table *t)
         
     }
     
+    //puts("");
+    
     for(i = 0; i < (1 << t->lsizenode); i++){
         v = &t->node[i].i_val;
         k = &t->node[i].i_key;
