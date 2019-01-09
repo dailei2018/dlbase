@@ -687,3 +687,588 @@ dl_sprintf_num(char *buf, char *last, uint64_t ui64, char zero,
 
     return dl_cpymem(buf, p, len);
 }
+
+
+/*
+    base64
+*/
+static void dl_encode_base64_internal(dl_str *dst, dl_str *src, const uchar *basis, int padding);
+static int dl_decode_base64_internal(dl_str *dst, dl_str *src, const uchar *basis);
+
+
+void
+dl_encode_base64(dl_str *dst, dl_str *src)
+{
+    static uchar   basis64[] =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    dl_encode_base64_internal(dst, src, basis64, 1);
+}
+
+void
+dl_encode_base64url(dl_str *dst, dl_str *src)
+{
+    static uchar   basis64[] =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+    dl_encode_base64_internal(dst, src, basis64, 0);
+}
+
+/*
+    3 * 8 = 4 * 6;
+    2^6 = 64;
+*/
+static void
+dl_encode_base64_internal(dl_str *dst, dl_str *src, const uchar *basis, int padding)
+{
+    uchar           *s;
+    char            *d;
+    size_t          len;
+
+    len = src->len;
+    s = (uchar *)src->data;
+    d = dst->data;
+    /*
+        3 bytes represented by 4 chars
+    */
+    while (len > 2) {
+        *d++ = basis[s[0] >> 2];
+        *d++ = basis[((s[0] & 3) << 4) | (s[1] >> 4)];
+        *d++ = basis[((s[1] & 0x0f) << 2) | (s[2] >> 6)];
+        *d++ = basis[s[2] & 0x3f];
+
+        s += 3;
+        len -= 3;
+    }
+
+    if (len) {
+        *d++ = basis[s[0] >> 2];
+
+        if (len == 1) {
+            *d++ = basis[(s[0] & 3) << 4];
+            if (padding) {
+                *d++ = '=';
+            }
+
+        } else {
+            *d++ = basis[((s[0] & 3) << 4) | (s[1] >> 4)];
+            *d++ = basis[(s[1] & 0x0f) << 2];
+        }
+
+        if (padding) {
+            *d++ = '=';
+        }
+    }
+
+    dst->len = d - dst->data;
+}
+
+
+/*
+    0 -> 65(A), 1 -> 66(B)
+    
+    basis64[65(A)] = 0;
+*/
+
+int
+dl_decode_base64(dl_str *dst, dl_str *src)
+{
+    static uchar   basis64[] = {
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 62, 77, 77, 77, 63,
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 77, 77, 77, 77, 77, 77,
+        77,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 77, 77, 77, 77, 77,
+        77, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 77, 77, 77, 77, 77,
+
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77
+    };
+
+    return dl_decode_base64_internal(dst, src, basis64);
+}
+
+int
+dl_decode_base64url(dl_str *dst, dl_str *src)
+{
+    static uchar   basis64[] = {
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 62, 77, 77,
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 77, 77, 77, 77, 77, 77,
+        77,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 77, 77, 77, 77, 63,
+        77, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 77, 77, 77, 77, 77,
+
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77
+    };
+
+    return dl_decode_base64_internal(dst, src, basis64);
+}
+
+static int
+dl_decode_base64_internal(dl_str *dst, dl_str *src, const uchar *basis)
+{
+    size_t          len;
+    char            *d;
+    uchar           *s;
+
+    for (len = 0; len < src->len; len++) {
+        if (src->data[len] == '=') {
+            break;
+        }
+        
+        // illegal base64 character
+        if (basis[src->data[len]] == 77) {
+            return DL_ERROR;
+        }
+    }
+    
+    /*
+        xxxx
+        xxxx xx==
+        xxxx xxx=
+        so (len % 4) could be 0,2,3 but 1
+    */
+    if (len % 4 == 1) {
+        return DL_ERROR;
+    }
+
+    s = (uchar *)src->data;
+    d = dst->data;
+
+    /* convert 4 bytes to 3 bytes */
+    while (len > 3) {
+        *d++ = (uchar) (basis[s[0]] << 2 | basis[s[1]] >> 4);
+        *d++ = (uchar) (basis[s[1]] << 4 | basis[s[2]] >> 2);
+        *d++ = (uchar) (basis[s[2]] << 6 | basis[s[3]]);
+
+        s += 4;
+        len -= 4;
+    }
+
+    if (len > 1) {
+        *d++ = (uchar) (basis[s[0]] << 2 | basis[s[1]] >> 4);
+    }
+
+    if (len > 2) {
+        *d++ = (uchar) (basis[s[1]] << 4 | basis[s[2]] >> 2);
+    }
+
+    dst->len = d - dst->data;
+
+    return DL_OK;
+}
+
+
+/*
+    utf8
+       
+        bits    begin      end
+        
+    1	7	    U+0000	  U+007F	    0xxxxxxx			
+    2	11	    U+0080	  U+07FF	    110xxxxx	10xxxxxx		
+    3	16	    U+0800	  U+FFFF	    1110xxxx	10xxxxxx	10xxxxxx	
+    4	21	    U+10000	  U+10FFFF	    11110xxx	10xxxxxx	10xxxxxx	10xxxxxx
+    
+*/
+
+/*
+ * decodes two and more bytes UTF sequences only
+ * the return values:
+ *    0x80 - 0x10ffff         valid character
+ *    0x110000 - 0xfffffffd   invalid sequence
+ *    0xfffffffe              incomplete sequence
+ *    0xffffffff              error
+ */
+
+uint32_t
+dl_utf8_decode(char **pp, size_t n)
+{
+    size_t    len;
+    uint32_t  u, i, valid;
+    uchar       **p;
+    
+    p = (uchar **)pp;
+    
+    u = **p;
+
+    if (u >= 0xf0) {
+        /* 11110xxx */
+        
+        u &= 0x07;      // get the last 3 valid bits
+        valid = 0xffff; // should greater than this value
+        len = 3;
+
+    } else if (u >= 0xe0) {
+        /* 1110xxxx */
+        
+        u &= 0x0f;      // get the last 4 valid bits
+        valid = 0x7ff;
+        len = 2;
+
+    } else if (u >= 0xc2) {
+        /* 110xxxxx */
+        u &= 0x1f;
+        valid = 0x7f;
+        len = 1;
+
+    } else {
+        (*p)++;
+        return 0xffffffff;
+    }
+
+    if (n - 1 < len) {
+        return 0xfffffffe;
+    }
+
+    (*p)++;
+
+    while (len) {
+        i = *(*p)++;
+
+        if (i < 0x80) {
+            return 0xffffffff;
+        }
+        
+        u = (u << 6) | (i & 0x3f);
+
+        len--;
+    }
+
+    if (u > valid) {
+        return u;
+    }
+
+    return 0xffffffff;
+}
+
+size_t
+dl_utf8_length(char *p, size_t n)
+{
+    uchar   c;
+    char    *last;
+    size_t  len;
+
+    last = p + n;
+
+    for (len = 0; p < last; len++) {
+
+        c = *p;
+        
+        // 127 ascii characters
+        if (c < 0x80) {
+            p++;
+            continue;
+        }
+
+        if (dl_utf8_decode(&p, n) > 0x10ffff) {
+            /* invalid UTF-8 */
+            return n;
+        }
+    }
+
+    return len;
+}
+
+
+/* uri escape -------------------------------------*/
+
+uintptr_t
+dl_escape_uri(char *dst, char *srcc, size_t size, int type)
+{
+    uintptr_t           n;
+    uint32_t            *escape;
+    static char         hex[] = "0123456789ABCDEF";
+
+                    /* " ", "#", "%", "?", %00-%1F, %7F-%FF */
+    
+    uchar *src = srcc;
+    
+    static uint32_t   uri[] = {
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */      // 0-31
+
+                    /* ?>=< ;:98 7654 3210  /.-, +*)( '&%$ #"!  */
+        0x80000029, /* 1000 0000 0000 0000  0000 0000 0010 1001 */      // 63-32
+
+                    /* _^]\ [ZYX WVUT SRQP  ONML KJIH GFED CBA@ */
+        0x00000000, /* 0000 0000 0000 0000  0000 0000 0000 0000 */      // 63-32
+
+                    /*  ~}| {zyx wvut srqp  onml kjih gfed cba` */
+        0x80000000, /* 1000 0000 0000 0000  0000 0000 0000 0000 */      // 126-96
+
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff  /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+    };
+
+                    /* " ", "#", "%", "&", "+", "?", %00-%1F, %7F-%FF */
+
+    static uint32_t   args[] = {
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+
+                    /* ?>=< ;:98 7654 3210  /.-, +*)( '&%$ #"!  */
+        0x88000869, /* 1000 1000 0000 0000  0000 1000 0110 1001 */
+
+                    /* _^]\ [ZYX WVUT SRQP  ONML KJIH GFED CBA@ */
+        0x00000000, /* 0000 0000 0000 0000  0000 0000 0000 0000 */
+
+                    /*  ~}| {zyx wvut srqp  onml kjih gfed cba` */
+        0x80000000, /* 1000 0000 0000 0000  0000 0000 0000 0000 */
+
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff  /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+    };
+
+                    /* not ALPHA, DIGIT, "-", ".", "_", "~" */
+
+    static uint32_t   uri_component[] = {
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */      // 0-31
+
+                    /* ?>=< ;:98 7654 3210  /.-, +*)( '&%$ #"!  */
+        0xfc009fff, /* 1111 1100 0000 0000  1001 1111 1111 1111 */      // 63-32
+
+                    /* _^]\ [ZYX WVUT SRQP  ONML KJIH GFED CBA@ */
+        0x78000001, /* 0111 1000 0000 0000  0000 0000 0000 0001 */      // 95-64
+
+                    /*  ~}| {zyx wvut srqp  onml kjih gfed cba` */
+        0xb8000001, /* 1011 1000 0000 0000  0000 0000 0000 0001 */      // 126-96
+
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff  /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+    };
+    
+        static uint32_t   html[] = {
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+
+                    /* ?>=< ;:98 7654 3210  /.-, +*)( '&%$ #"!  */
+        0x000000ad, /* 0000 0000 0000 0000  0000 0000 1010 1101 */
+
+                    /* _^]\ [ZYX WVUT SRQP  ONML KJIH GFED CBA@ */
+        0x00000000, /* 0000 0000 0000 0000  0000 0000 0000 0000 */
+
+                    /*  ~}| {zyx wvut srqp  onml kjih gfed cba` */
+        0x80000000, /* 1000 0000 0000 0000  0000 0000 0000 0000 */
+
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff  /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+    };
+
+                    /* " ", """, "%", "'", %00-%1F, %7F-%FF */
+
+    static uint32_t   refresh[] = {
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+
+                    /* ?>=< ;:98 7654 3210  /.-, +*)( '&%$ #"!  */
+        0x00000085, /* 0000 0000 0000 0000  0000 0000 1000 0101 */
+
+                    /* _^]\ [ZYX WVUT SRQP  ONML KJIH GFED CBA@ */
+        0x00000000, /* 0000 0000 0000 0000  0000 0000 0000 0000 */
+
+                    /*  ~}| {zyx wvut srqp  onml kjih gfed cba` */
+        0x80000000, /* 1000 0000 0000 0000  0000 0000 0000 0000 */
+
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+        0xffffffff  /* 1111 1111 1111 1111  1111 1111 1111 1111 */
+    };
+
+    static uint32_t  *map[] = { uri, args, uri_component, html, refresh};
+
+
+    escape = map[type];
+
+    if (dst == NULL) {
+
+        /* find the number of the characters to be escaped */
+
+        n = 0;
+        
+        /* char >> 5 = 3 bits = [0-7] */
+        while (size) {
+            if (escape[*src >> 5] & (1U << (*src & 0x1f))) {
+                n++;
+            }
+            src++;
+            size--;
+        }
+
+        return (uintptr_t) n;
+    }
+
+    while (size) {
+        if (escape[*src >> 5] & (1U << (*src & 0x1f))) {
+            *dst++ = '%';
+            *dst++ = hex[*src >> 4];
+            *dst++ = hex[*src & 0xf];
+            src++;
+
+        } else {
+            *dst++ = *src++;
+        }
+        size--;
+    }
+
+    return (uintptr_t) dst;
+}
+
+
+/*
+    DL_UNESCAPE_URI | DL_UNESCAPE_REDIRECT    return whem meet ?
+    DL_UNESCAPE_REDIRECT   only unescape char (38-126)
+*/
+
+void
+dl_unescape_uri(uchar **dst, uchar **src, size_t size, int type)
+{
+    uchar  *d, *s, ch, c, decoded;
+    enum {
+        sw_usual = 0,
+        sw_quoted,
+        sw_quoted_second
+    } state;
+
+    d = *dst;
+    s = *src;
+
+    state = 0;
+    decoded = 0;
+
+    while (size--) {
+
+        ch = *s++;
+
+        switch (state) {
+        case sw_usual:
+            if (ch == '?'
+                && (type & (DL_UNESCAPE_URI|DL_UNESCAPE_REDIRECT)))
+            {
+                *d++ = ch;
+                goto done;
+            }
+
+            if (ch == '%') {
+                state = sw_quoted;
+                break;
+            }
+
+            *d++ = ch;
+            break;
+
+        case sw_quoted:
+
+            if (ch >= '0' && ch <= '9') {
+                decoded = (uchar) (ch - '0');
+                state = sw_quoted_second;
+                break;
+            }
+            
+            /* c >= 32 */
+            c = (uchar) (ch | 0x20);
+            if (c >= 'a' && c <= 'f') {
+                decoded = (uchar) (c - 'a' + 10);
+                state = sw_quoted_second;
+                break;
+            }
+
+            /* the invalid quoted character */
+
+            state = sw_usual;
+
+            *d++ = ch;
+
+            break;
+
+        case sw_quoted_second:
+
+            state = sw_usual;
+
+            if (ch >= '0' && ch <= '9') {
+                ch = (uchar) ((decoded << 4) + (ch - '0'));
+
+                if (type & DL_UNESCAPE_REDIRECT) {
+                    if (ch > '%' && ch < 0x7f) {
+                        *d++ = ch;
+                        break;
+                    }
+
+                    *d++ = '%'; *d++ = *(s - 2); *d++ = *(s - 1);
+
+                    break;
+                }
+
+                *d++ = ch;
+
+                break;
+            }
+
+            c = (uchar) (ch | 0x20);
+            if (c >= 'a' && c <= 'f') {
+                ch = (uchar) ((decoded << 4) + (c - 'a') + 10);
+
+                if (type & DL_UNESCAPE_URI) {
+                    if (ch == '?') {
+                        *d++ = ch;
+                        goto done;
+                    }
+
+                    *d++ = ch;
+                    break;
+                }
+
+                if (type & DL_UNESCAPE_REDIRECT) {
+                    if (ch == '?') {
+                        *d++ = ch;
+                        goto done;
+                    }
+                    
+                    if (ch > '%' && ch < 0x7f) {
+                        *d++ = ch;
+                        break;
+                    }
+                    
+                    /* do not unescape */
+                    *d++ = '%'; *d++ = *(s - 2); *d++ = *(s - 1);
+                    break;
+                }
+
+                *d++ = ch;
+
+                break;
+            }
+
+            /* the invalid quoted character */
+
+            break;
+        }
+    }
+
+done:
+
+    *dst = d;
+    *src = s;
+}

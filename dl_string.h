@@ -37,6 +37,35 @@ char *dl_pstrdup(dl_pool *pool, char *data, size_t len);
 char *dl_pstrdup_nt(dl_pool *pool, char *data, size_t len);
 char *dl_strdup_nt(char *data, size_t len);
 int dl_atoi(char *line, size_t n);
+
+/* base64 */
+void dl_encode_base64(dl_str *dst, dl_str *src);
+void dl_encode_base64url(dl_str *dst, dl_str *src);
+
+int dl_decode_base64(dl_str *dst, dl_str *src);
+int dl_decode_base64url(dl_str *dst, dl_str *src);
+
+#define base64_len(n)   ((n*4/3 + 3) & ~3)
+
+
+/* utf8 */
+uint32_t dl_utf8_decode(char **p, size_t n);
+size_t dl_utf8_length(char *p, size_t n);
+
+/* escape uri */
+
+#define DL_ESCAPE_URI            0
+#define DL_ESCAPE_ARGS           1
+#define DL_ESCAPE_URI_COMPONENT  2
+#define DL_ESCAPE_HTML           3
+#define DL_ESCAPE_REFRESH        4
+
+#define DL_UNESCAPE_URI         1
+#define DL_UNESCAPE_REDIRECT    2
+
+uintptr_t dl_escape_uri(char *dst, char *srcc, size_t size, int type);
+void dl_unescape_uri(uchar **dst, uchar **src, size_t size, int type);
+
 /*
  * debug
  */
