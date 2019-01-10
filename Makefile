@@ -15,11 +15,14 @@ binary:	libdlbase.so
 
 libdlbase.so:	dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o dl_queue.o \
 				dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o dl_inet.o \
-				dl_time.o dl_table.o re/dl_pcre2.o algo/dl_math.o
+				dl_time.o dl_table.o re/dl_pcre2.o algo/dl_math.o algo/dl_md5.o algo/dl_sha1.o \
+				algo/dl_sha2.o
+				
 	
 	$(LINK) -o libdlbase.so dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o \
 			   dl_queue.o dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o \
-			   dl_inet.o dl_time.o dl_table.o re/dl_pcre2.o algo/dl_math.o  \
+			   dl_inet.o dl_time.o dl_table.o re/dl_pcre2.o algo/dl_math.o algo/dl_md5.o  \
+			   algo/dl_sha1.o algo/dl_sha2.o \
 			   $(XLIBS)	
 	
 	rm -f `find ./ -name '*.o'`
@@ -79,6 +82,15 @@ re/dl_pcre2.o:
 
 algo/dl_math.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_math.o algo/dl_math.c
+
+algo/dl_md5.o:
+	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_md5.o algo/dl_md5.c
+
+algo/dl_sha1.o:
+	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_sha1.o algo/dl_sha1.c
+
+algo/dl_sha2.o:
+	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_sha2.o algo/dl_sha2.c
 
 clean:
 	rm -f `find ./ -name '*.o'`

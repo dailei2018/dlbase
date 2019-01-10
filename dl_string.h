@@ -63,8 +63,16 @@ size_t dl_utf8_length(char *p, size_t n);
 #define DL_UNESCAPE_URI         1
 #define DL_UNESCAPE_REDIRECT    2
 
-uintptr_t dl_escape_uri(char *dst, char *srcc, size_t size, int type);
+uintptr_t dl_escape_uri(uchar *dst, uchar *src, size_t size, int type);
 void dl_unescape_uri(uchar **dst, uchar **src, size_t size, int type);
+uintptr_t dl_escape_html(uchar *dst, uchar *src, size_t size);
+uintptr_t dl_escape_json(uchar *dst, uchar *src, size_t size);
+
+/*
+    checksum
+*/
+char *dl_md5sum(char *dst, char *str, size_t len);
+char *dl_sha1sum(char *dst, char *str, size_t len);
 
 /*
  * debug

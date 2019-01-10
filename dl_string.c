@@ -991,15 +991,13 @@ dl_utf8_length(char *p, size_t n)
 /* uri escape -------------------------------------*/
 
 uintptr_t
-dl_escape_uri(char *dst, char *srcc, size_t size, int type)
+dl_escape_uri(uchar *dst, uchar *src, size_t size, int type)
 {
     uintptr_t           n;
     uint32_t            *escape;
     static char         hex[] = "0123456789ABCDEF";
 
                     /* " ", "#", "%", "?", %00-%1F, %7F-%FF */
-    
-    uchar *src = srcc;
     
     static uint32_t   uri[] = {
         0xffffffff, /* 1111 1111 1111 1111  1111 1111 1111 1111 */      // 0-31
@@ -1225,7 +1223,8 @@ dl_unescape_uri(uchar **dst, uchar **src, size_t size, int type)
 
                 break;
             }
-
+            
+            // c >= 32
             c = (uchar) (ch | 0x20);
             if (c >= 'a' && c <= 'f') {
                 ch = (uchar) ((decoded << 4) + (c - 'a') + 10);
@@ -1271,4 +1270,218 @@ done:
 
     *dst = d;
     *src = s;
+}
+
+
+uintptr_t
+dl_escape_html(uchar *dst, uchar *src, size_t size)
+{
+    uchar       ch;
+    uint         len;
+
+    /* get extra memory space */
+    if (dst == NULL) {
+
+        len = 0;
+
+        while (size) {
+            switch (*src++) {
+
+            case '<':
+                len += sizeof("&lt;") - 2;
+                break;
+
+            case '>':
+                len += sizeof("&gt;") - 2;
+                break;
+
+            case '&':
+                len += sizeof("&amp;") - 2;
+                break;
+
+            case '"':
+                len += sizeof("&quot;") - 2;
+                break;
+
+            default:
+                break;
+            }
+            size--;
+        }
+
+        return (uintptr_t) len;
+    }
+
+    while (size) {
+        ch = *src++;
+
+        switch (ch) {
+
+        case '<':
+            *dst++ = '&'; *dst++ = 'l'; *dst++ = 't'; *dst++ = ';';
+            break;
+
+        case '>':
+            *dst++ = '&'; *dst++ = 'g'; *dst++ = 't'; *dst++ = ';';
+            break;
+
+        case '&':
+            *dst++ = '&'; *dst++ = 'a'; *dst++ = 'm'; *dst++ = 'p';
+            *dst++ = ';';
+            break;
+
+        case '"':
+            *dst++ = '&'; *dst++ = 'q'; *dst++ = 'u'; *dst++ = 'o';
+            *dst++ = 't'; *dst++ = ';';
+            break;
+
+        default:
+            *dst++ = ch;
+            break;
+        }
+        size--;
+    }
+
+    return (uintptr_t) dst;
+}
+
+
+/*
+    escape json content between souble quotes("")
+    printable characters only escape \ and "
+*/
+
+uintptr_t
+dl_escape_json(uchar *dst, uchar *src, size_t size)
+{
+    uchar       ch;
+    uint        len;
+
+    if (dst == NULL) {
+        len = 0;
+
+        while (size) {
+            ch = *src++;
+
+            if (ch == '\\' || ch == '"') {
+                len++;
+
+            } else if (ch <= 0x1f) {
+
+                switch (ch) {
+                case '\n':
+                case '\r':
+                case '\t':
+                case '\b':
+                case '\f':
+                    len++;
+                    break;
+
+                default:
+                    len += sizeof("\\u001F") - 2;
+                }
+            }
+
+            size--;
+        }
+
+        return (uintptr_t) len;
+    }
+
+    while (size) {
+        ch = *src++;
+        
+        if (ch > 0x1f) {
+            if (ch == '\\' || ch == '"') {
+                *dst++ = '\\';
+            }
+
+            *dst++ = ch;
+
+        } else {
+            *dst++ = '\\';
+
+            switch (ch) {
+            case '\n':
+                *dst++ = 'n';
+                break;
+
+            case '\r':
+                *dst++ = 'r';
+                break;
+
+            case '\t':
+                *dst++ = 't';
+                break;
+
+            case '\b':
+                *dst++ = 'b';
+                break;
+
+            case '\f':
+                *dst++ = 'f';
+                break;
+
+            default:
+                *dst++ = 'u'; *dst++ = '0'; *dst++ = '0';
+                *dst++ = '0' + (ch >> 4);
+
+                ch &= 0xf;
+
+                *dst++ = (ch < 10) ? ('0' + ch) : ('A' + ch - 10);
+            }
+        }
+
+        size--;
+    }
+
+    return (uintptr_t) dst;
+}
+
+/*
+    checksum
+*/
+#include "dl_md5.h"
+
+char *dl_md5sum(char *dst, char *str, size_t len)
+{
+    uchar       digest[16];
+    md5_ctx     context;
+    
+    md5Init(&context);
+    md5Update(&context, str, len);
+    md5Final(digest, &context);
+    
+    int i;
+    for(i = 0; i < 16; i++){
+        sprintf(dst, "%02x", digest[i]);
+        dst += 2;
+    }
+    
+    return dst;
+}
+
+#include "dl_sha1.h"
+
+char *dl_sha1sum(char *dst, char *str, size_t len)
+{
+    sha1_ctx        ctx;
+    uchar           digest[20];
+    int             s,i;
+    
+    s = sha1Reset(&ctx);
+    if(s) return NULL;
+    
+    s = sha1Input(&ctx, str, len);
+    if(s) return NULL;
+    
+    s = sha1Result(&ctx, digest);
+    if(s) return NULL;
+    
+    for(i = 0; i < 20 ; ++i){
+        sprintf(dst, "%02x", digest[i]);
+        dst += 2;
+    }
+    
+    return dst;
 }
