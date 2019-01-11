@@ -1438,8 +1438,12 @@ dl_escape_json(uchar *dst, uchar *src, size_t size)
     return (uintptr_t) dst;
 }
 
+
+
+
+
 /*
-    checksum
+    checksum------------------------
 */
 #include "dl_md5.h"
 
@@ -1461,24 +1465,57 @@ char *dl_md5sum(char *dst, char *str, size_t len)
     return dst;
 }
 
-#include "dl_sha1.h"
+#include "dl_sha.h"
 
-char *dl_sha1sum(char *dst, char *str, size_t len)
+static char *dl_sha(char *dst, char *str, size_t len, enum SHAversion whichSha)
 {
-    sha1_ctx        ctx;
-    uchar           digest[20];
+    USHAContext     ctx;
+    uchar           digest[USHAHashSize(whichSha)];
     int             s,i;
     
-    s = sha1Reset(&ctx);
+    s = USHAReset(&ctx, whichSha);
     if(s) return NULL;
     
-    s = sha1Input(&ctx, str, len);
+    s = USHAInput(&ctx, str, len);
     if(s) return NULL;
     
-    s = sha1Result(&ctx, digest);
+    s = USHAResult(&ctx, digest);
     if(s) return NULL;
     
-    for(i = 0; i < 20 ; ++i){
+    for(i = 0; i < USHAHashSize(whichSha) ; ++i){
+        sprintf(dst, "%02x", digest[i]);
+        dst += 2;
+    }
+    
+    return dst;
+}
+
+char *dl_sha1sum(char *dst, char *str, size_t len){
+    return dl_sha(dst, str, len, SHA1);
+}
+char *dl_sha224sum(char *dst, char *str, size_t len){
+    return dl_sha(dst, str, len, SHA224);
+}
+char *dl_sha256sum(char *dst, char *str, size_t len){
+    return dl_sha(dst, str, len, SHA256);
+}
+char *dl_sha384sum(char *dst, char *str, size_t len){
+    return dl_sha(dst, str, len, SHA384);
+}
+char *dl_sha512sum(char *dst, char *str, size_t len){
+    return dl_sha(dst, str, len, SHA512);
+}
+
+char *dl_sha_hmac(char *dst, char *str, size_t len, char *key, size_t key_len,
+                  int whichSha)
+{
+    int     i,s;
+    uint8_t digest[USHAMaxHashSize];
+    
+    s = dl_hmac(whichSha, str, len, key, key_len, digest);
+    if(s) return NULL;
+    
+    for(i = 0; i < USHAHashSize(whichSha); i++){
         sprintf(dst, "%02x", digest[i]);
         dst += 2;
     }

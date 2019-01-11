@@ -73,6 +73,12 @@ uintptr_t dl_escape_json(uchar *dst, uchar *src, size_t size);
 */
 char *dl_md5sum(char *dst, char *str, size_t len);
 char *dl_sha1sum(char *dst, char *str, size_t len);
+char *dl_sha224sum(char *dst, char *str, size_t len);
+char *dl_sha256sum(char *dst, char *str, size_t len);
+char *dl_sha384sum(char *dst, char *str, size_t len);
+char *dl_sha512sum(char *dst, char *str, size_t len);
+char *dl_sha_hmac(char *dst, char *str, size_t len, char *key, size_t key_len,
+                  int whichSha);
 
 /*
  * debug

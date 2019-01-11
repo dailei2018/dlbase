@@ -1,5 +1,5 @@
-#ifndef __DL_sha2
-#define __DL_sha2
+#ifndef __DL_SHA2
+#define __DL_SHA2
 
 #include <stdint.h>
 
@@ -206,7 +206,7 @@ extern int USHAHashSizeBits(enum SHAversion whichSha);
  * for all SHAs.
  * This interface allows a fixed-length text input to be used.
  */
-extern int hmac(SHAversion whichSha, /* which SHA algorithm to use */
+int dl_hmac(SHAversion whichSha, /* which SHA algorithm to use */
     const unsigned char *text,     /* pointer to data stream */
     int text_len,                  /* length of data stream */
     const unsigned char *key,      /* pointer to authentication key */
@@ -218,14 +218,14 @@ extern int hmac(SHAversion whichSha, /* which SHA algorithm to use */
  * for all SHAs.
  * This interface allows any length of text input to be used.
  */
-extern int hmacReset(HMACContext *ctx, enum SHAversion whichSha,
+int hmacReset(HMACContext *ctx, enum SHAversion whichSha,
                      const unsigned char *key, int key_len);
-extern int hmacInput(HMACContext *ctx, const unsigned char *text,
+int hmacInput(HMACContext *ctx, const unsigned char *text,
                      int text_len);
 
-extern int hmacFinalBits(HMACContext *ctx, const uint8_t bits,
+int hmacFinalBits(HMACContext *ctx, const uint8_t bits,
                          unsigned int bitcount);
-extern int hmacResult(HMACContext *ctx,
+int hmacResult(HMACContext *ctx,
                       uint8_t digest[USHAMaxHashSize]);
 
 
