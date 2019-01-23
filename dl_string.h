@@ -45,7 +45,7 @@ void dl_encode_base64url(dl_str *dst, dl_str *src);
 int dl_decode_base64(dl_str *dst, dl_str *src);
 int dl_decode_base64url(dl_str *dst, dl_str *src);
 
-#define base64_len(n)   ((n*4/3 + 3) & ~3)
+#define base64_len(n)   (((n)*4/3 + 3) & ~3)
 
 
 /* utf8 */
@@ -67,6 +67,9 @@ uintptr_t dl_escape_uri(uchar *dst, uchar *src, size_t size, int type);
 void dl_unescape_uri(uchar **dst, uchar **src, size_t size, int type);
 uintptr_t dl_escape_html(uchar *dst, uchar *src, size_t size);
 uintptr_t dl_escape_json(uchar *dst, uchar *src, size_t size);
+
+void dl_dump_bin2hex(char *buf, size_t len);
+void dl_memcpy_rev(char *dst, char *src, size_t len);
 
 /*
     checksum

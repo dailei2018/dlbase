@@ -1,120 +1,91 @@
-#include <stdint.h>
-#include <stdlib.h>
+#ifndef __DL_RSA
+#define __DL_RSA
 
-#define BN_ULONG uint64_t
+#include "dl_base.h"
+#include "gcrypt.h"
 
-typedef struct bignum_st BIGNUM;
-typedef struct rsa_st RSA;
-typedef struct rsa_meth_st RSA_METHOD;
-typedef struct bn_mont_ctx_st BN_MONT_CTX;
 
-struct rsa_st {
-    /*
-     * The first parameter is used to pickup errors where this is passed
-     * instead of an EVP_PKEY, it is set to 0
-     */
-    int pad;
-    int32_t version;
-    const RSA_METHOD *meth;
-    /* functional reference if 'meth' is ENGINE-provided */
-    //ENGINE *engine;
-    BIGNUM *n;
-    BIGNUM *e;
-    BIGNUM *d;
-    BIGNUM *p;
-    BIGNUM *q;
-    BIGNUM *dmp1;
-    BIGNUM *dmq1;
-    BIGNUM *iqmp;
-    /* for multi-prime RSA, defined in RFC 8017 */
-    //STACK_OF(RSA_PRIME_INFO) *prime_infos;
-    /* If a PSS only key this contains the parameter restrictions */
-    //RSA_PSS_PARAMS *pss;
-    /* be careful using this if the RSA structure is shared */
-    //CRYPTO_EX_DATA ex_data;
-    //CRYPTO_REF_COUNT references;
-    int flags;
-    /* Used to cache montgomery values */
-    BN_MONT_CTX *_method_mod_n;
-    BN_MONT_CTX *_method_mod_p;
-    BN_MONT_CTX *_method_mod_q;
-    /*
-     * all BIGNUM values are actually in the following data, if it is not
-     * NULL
-     */
-    char *bignum_data;
-    //BN_BLINDING *blinding;
-    //BN_BLINDING *mt_blinding;
-    //CRYPTO_RWLOCK *lock;
+struct gcry_mpi
+{
+  int alloced;         /* Array size (# of allocated limbs). */
+  int nlimbs;          /* Number of valid limbs. */
+  int sign;	       /* Indicates a negative number and is also used
+		          for opaque MPIs to store the length.  */
+  unsigned int flags; /* Bit 0: Array to be allocated in secure memory space.*/
+                      /* Bit 2: The limb is a pointer to some m_alloced data.*/
+                      /* Bit 4: Immutable MPI - the MPI may not be modified.  */
+                      /* Bit 5: Constant MPI - the MPI will not be freed.  */
+  uintptr_t *d;      /* Array with the limbs */
 };
+//typedef struct{
+//  int alloced;         /* Array size (# of allocated limbs). */
+//  int nlimbs;          /* Number of valid limbs. */
+//  int sign;	       /* Indicates a negative number and is also used
+//		          for opaque MPIs to store the length.  */
+//  unsigned int      flags; /* Bit 0: Array to be allocated in secure memory space.*/
+                      /* Bit 2: The limb is a pointer to some m_alloced data.*/
+                      /* Bit 4: Immutable MPI - the MPI may not be modified.  */
+                      /* Bit 5: Constant MPI - the MPI will not be freed.  */
+//  unsigned long     *d;      /* Array with the limbs */
+//} gcry_mpi_t;
 
-struct bignum_st {
-    BN_ULONG *d;                /* Pointer to an array of 'BN_BITS2' bit
-                                 * chunks. */
-    int top;                    /* Index of last used d +1. */
-    /* The next are internal book keeping for bn_expand. */
-    int dmax;                   /* Size of the d array. */
-    int neg;                    /* one if the number is negative */
-    int flags;
-};
+typedef struct{
+    int bs;
+    int len;
+    char *data;
+} der_rep;
 
-struct rsa_meth_st {
-    char *name;
-    int (*rsa_pub_enc) (int flen, const unsigned char *from,
-                        unsigned char *to, RSA *rsa, int padding);
-    int (*rsa_pub_dec) (int flen, const unsigned char *from,
-                        unsigned char *to, RSA *rsa, int padding);
-    int (*rsa_priv_enc) (int flen, const unsigned char *from,
-                         unsigned char *to, RSA *rsa, int padding);
-    int (*rsa_priv_dec) (int flen, const unsigned char *from,
-                         unsigned char *to, RSA *rsa, int padding);
-    /* Can be null */
-    int (*rsa_mod_exp) (BIGNUM *r0, const BIGNUM *I, RSA *rsa, BN_CTX *ctx);
-    /* Can be null */
-    int (*bn_mod_exp) (BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
-                       const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx);
-    /* called at new */
-    int (*init) (RSA *rsa);
-    /* called at free */
-    int (*finish) (RSA *rsa);
-    /* RSA_METHOD_FLAG_* things */
-    int flags;
-    /* may be needed! */
-    char *app_data;
-    /*
-     * New sign and verify functions: some libraries don't allow arbitrary
-     * data to be signed/verified: this allows them to be used. Note: for
-     * this to work the RSA_public_decrypt() and RSA_private_encrypt() should
-     * *NOT* be used RSA_sign(), RSA_verify() should be used instead.
-     */
-    int (*rsa_sign) (int type,
-                     const unsigned char *m, unsigned int m_length,
-                     unsigned char *sigret, unsigned int *siglen,
-                     const RSA *rsa);
-    int (*rsa_verify) (int dtype, const unsigned char *m,
-                       unsigned int m_length, const unsigned char *sigbuf,
-                       unsigned int siglen, const RSA *rsa);
-    /*
-     * If this callback is NULL, the builtin software RSA key-gen will be
-     * used. This is for behavioural compatibility whilst the code gets
-     * rewired, but one day it would be nice to assume there are no such
-     * things as "builtin software" implementations.
-     */
-    int (*rsa_keygen) (RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
-    int (*rsa_multi_prime_keygen) (RSA *rsa, int bits, int primes,
-                                   BIGNUM *e, BN_GENCB *cb);
-};
+typedef struct
+{
+  gcry_mpi_t n;	    /* modulus */
+  gcry_mpi_t e;	    /* exponent */
+} RSA_public_key;
 
-/* Used for montgomery multiplication */
-struct bn_mont_ctx_st {
-    int ri;                     /* number of bits in R */
-    BIGNUM RR;                  /* used to convert to montgomery form,
-                                   possibly zero-padded */
-    BIGNUM N;                   /* The modulus */
-    BIGNUM Ni;                  /* R*(1/R mod N) - N*Ni = 1 (Ni is only
-                                 * stored for bignum algorithm) */
-    BN_ULONG n0[2];             /* least significant word(s) of Ni; (type
-                                 * changed with 0.9.9, was "BN_ULONG n0;"
-                                 * before) */
-    int flags;
-};
+typedef struct
+{
+  gcry_mpi_t n;	    /* public modulus */
+  gcry_mpi_t e;	    /* public exponent */
+  gcry_mpi_t d;	    /* e对于模数(q-1)(p-1)的模反元素 */
+  gcry_mpi_t p;	    /* prime  p < q */
+  gcry_mpi_t q;	    /* prime  q. */
+  gcry_mpi_t u;	    /* p对模数q的模反元素*/
+} RSA_secret_key;
+
+typedef struct
+{
+  gcry_mpi_t n;	    /* public modulus */
+  gcry_mpi_t e;	    /* public exponent */
+  gcry_mpi_t d;	    /* e对于模数(q-1)(p-1)的模反元素 */
+  gcry_mpi_t p;	    /* prime  p > q */
+  gcry_mpi_t q;	    /* prime  q. */
+  gcry_mpi_t u;	    /* q对模数p的模反元素*/
+  
+  gcry_mpi_t e1;    // d mod (p-1)
+  gcry_mpi_t e2;    // d mod (q-1)
+  
+} RSA_secret_key_ex;
+
+typedef struct{
+    RSA_secret_key  key;
+} dl_rsa;
+
+RSA_secret_key * dl_rsa_key_gen(size_t size, RSA_secret_key *key, dl_log *log);
+RSA_secret_key_ex * dl_rsa_keyEx_gen(size_t size, RSA_secret_key_ex *key_ex, dl_log *log);
+int dl_rsa_gen_sexp(gcry_sexp_t *sexp, int size, dl_log *log);
+int dl_sexp_to_rsa(RSA_secret_key *k, gcry_sexp_t sexp);
+int dl_rsa_to_sexp(gcry_sexp_t *sexp, RSA_secret_key *k);
+
+void dl_free_rsa(void *k, int ex);
+void dl_free_sexp(gcry_sexp_t sexp);
+
+int dl_openssl_pkcs1_to_rsa(char *secret, RSA_secret_key *k);
+int dl_rsa_to_rsaEx(RSA_secret_key_ex *key_ex, RSA_secret_key *key);
+int dl_rsaEx_to_rsa(RSA_secret_key *key, RSA_secret_key_ex *key_ex);
+
+dl_str * dl_rsaEx_to_der(RSA_secret_key_ex *key_ex, dl_str *str);
+dl_str * dl_rsaDer_to_pem(dl_str *der);
+dl_str *dl_rsaPem_to_der(char *data, size_t len);
+
+RSA_secret_key_ex *dl_der_to_rsaEx(dl_str *der, RSA_secret_key_ex *key);
+
+#endif

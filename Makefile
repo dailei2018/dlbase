@@ -1,8 +1,8 @@
 CC =	cc
 CFLAGS =  -pipe  -O0 -g3 -fPIC #-DDL_MEM_DEBUG
-MY_CFLAGS = -I re -I algo -I ./
+MY_CFLAGS = -I re -I algo -I algo/rsa -I ./ -I /usr/local/gnupg/libgcrypt/include -I /usr/local/gnupg/libgpg-error/include
 
-XLIBS = -shared -lpcre2-8
+XLIBS = -shared -lpcre2-8 -L /usr/local/gnupg/libgcrypt/lib -lgcrypt -Wl,-rpath,/usr/local/gnupg/libgcrypt/lib
 
 LINK =	$(CC)
 
@@ -16,18 +16,20 @@ binary:	libdlbase.so
 libdlbase.so:	dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o dl_queue.o \
 				dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o dl_inet.o \
 				dl_time.o dl_table.o re/dl_pcre2.o algo/dl_math.o algo/dl_md5.o algo/dl_sha1.o \
-				algo/dl_sha2-32.o algo/dl_sha2-64.o algo/dl_shau.o algo/dl_sha-hmac.o
+				algo/dl_sha2-32.o algo/dl_sha2-64.o algo/dl_shau.o algo/dl_sha-hmac.o \
+				algo/rsa/dl_rsa.o
 				
 	
 	$(LINK) -o libdlbase.so dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o \
 			   dl_queue.o dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o \
 			   dl_inet.o dl_time.o dl_table.o re/dl_pcre2.o algo/dl_math.o algo/dl_md5.o  \
 			   algo/dl_sha1.o algo/dl_sha2-32.o algo/dl_sha2-64.o algo/dl_shau.o algo/dl_sha-hmac.o \
+			   algo/rsa/dl_rsa.o \
 			   $(XLIBS)	
 	
 	rm -f `find ./ -name '*.o'`
 	cp libdlbase.so /usr/lib/x86_64-linux-gnu/
-	cp *.h re/*.h algo/*.h /usr/include/dlbase/
+	cp *.h re/*.h algo/*.h algo/rsa/*.h /usr/include/dlbase/
 
 dl_file.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o dl_file.o dl_file.c
@@ -101,6 +103,8 @@ algo/dl_shau.o:
 algo/dl_sha-hmac.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_sha-hmac.o algo/dl_sha-hmac.c
 
+algo/rsa/dl_rsa.o:
+	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/rsa/dl_rsa.o algo/rsa/dl_rsa.c
 
 clean:
 	rm -f `find ./ -name '*.o'`

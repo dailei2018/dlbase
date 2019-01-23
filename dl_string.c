@@ -1438,8 +1438,42 @@ dl_escape_json(uchar *dst, uchar *src, size_t size)
     return (uintptr_t) dst;
 }
 
+static inline uchar dl_c2hex(uchar d){
+    if(d >= 0 && d <= 9){
+        d = d + '0';
+    }else{
+        d = d - 10 + 'a';
+    }
+    
+    return d;
+}
 
+void dl_dump_bin2hex(char *buf, size_t len)
+{
+    int     i;
+    uchar   d1, d2;
+    
+    uchar *cur = buf;
+    
+    for(i = 0; i < len; i++){
+        d1 = *cur >> 4;
+        d2 = *cur++ & 0xf;
+        
+        printf("%c%c", dl_c2hex(d1), dl_c2hex(d2));
+        //printf(",");
+    }
+    
+    printf("\n");
+}
 
+void dl_memcpy_rev(char *dst, char *src, size_t len)
+{
+    char *cur = src + len - 1;
+    
+    while(src <= cur){
+        *dst++ = *cur--;
+    }
+}
 
 
 /*
