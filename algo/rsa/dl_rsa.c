@@ -325,9 +325,76 @@ static inline der_rep * dl_cal(gcry_mpi_t n)
         memcpy(cur, n->d, res->len);
     
     res->len = res_len;
-    printf("%d\n", res->len);
+    //printf("%d\n", res->len);
     
     return res;
+}
+
+dl_str * dl_rsaPub_to_der(RSA_public_key *key, dl_str *str)
+{
+    int     len;
+    int     bs;
+    uchar   *buf, *cur;
+
+    if(str == NULL){
+        str = dl_alloc(sizeof(dl_str), NULL);
+        if(str == NULL) return NULL;
+    }
+    
+    der_rep *der_n = dl_cal(key->n);
+    der_rep *der_e = dl_cal(key->e);
+    
+    len = der_n->len + der_e->len;
+    
+    if(len >= 128){
+        
+        if(len >> 15)
+            bs = 3;
+        else
+            bs = 2;
+        
+        buf = dl_alloc(len + 2 + bs, NULL);
+        cur = buf;
+        if(cur == NULL) return NULL;
+        
+        str->len = len + 2 + bs;
+        
+        *cur++ = 0x30;
+        *cur++ = 0x80 | bs;
+        
+        if(bs == 2){
+            *cur++ = (len >> 8) & 0xff;
+            *cur++ = (len) & 0xff;
+        }else{
+            *cur++ = (len >> 16) & 0xff;
+            *cur++ = (len >> 8) & 0xff;
+            *cur++ = (len) & 0xff;
+        }
+        
+    }else{
+        buf = dl_alloc(len + 2, NULL);
+        cur = buf;
+        if(cur == NULL) return NULL;
+        
+        str->len = len + 2;
+        
+        *cur++ = 0x30;
+        *cur++ = len;
+    }
+    
+    memcpy(cur, der_n->data, der_n->len);
+    cur += der_n->len;
+    
+    memcpy(cur, der_e->data, der_e->len);
+    cur += der_e->len;
+    str->data = (char *)buf;
+    
+    dl_free(der_n->data);
+    dl_free(der_n);
+    dl_free(der_e->data);
+    dl_free(der_e);
+    
+    return str;
 }
 
 dl_str * dl_rsaEx_to_der(RSA_secret_key_ex *key_ex, dl_str *str)
@@ -422,21 +489,50 @@ dl_str * dl_rsaEx_to_der(RSA_secret_key_ex *key_ex, dl_str *str)
     
     str->data = (char *)buf;
     
+    dl_free(der_n->data);
+    dl_free(der_n);
+    dl_free(der_e->data);
+    dl_free(der_e);
+    dl_free(der_d->data);
+    dl_free(der_d);
+    dl_free(der_p->data);
+    dl_free(der_p);
+    dl_free(der_q->data);
+    dl_free(der_q);
+    dl_free(der_e1->data);
+    dl_free(der_e1);
+    dl_free(der_e2->data);
+    dl_free(der_e2);
+    dl_free(der_u->data);
+    dl_free(der_u);
+    
     return str;
 }
 
-dl_str * dl_rsaDer_to_pem(dl_str *der)
+dl_str * dl_rsaDer_to_pem(dl_str *der, int is_pub)
 {
     int     len,b_left;
     dl_str  *res;
     
-    dl_str head = dl_string("-----BEGIN RSA PRIVATE KEY-----\n");
-    dl_str tail = dl_string("-----END RSA PRIVATE KEY-----\n");
+    dl_str *head, *tail;
+    
+    dl_str head_pub = dl_string("-----BEGIN RSA PUBLIC KEY-----\n");
+    dl_str tail_pub = dl_string("-----END RSA PUBLIC KEY-----\n");
+    dl_str head_pri = dl_string("-----BEGIN RSA PRIVATE KEY-----\n");
+    dl_str tail_pri = dl_string("-----END RSA PRIVATE KEY-----\n");
+    
+    if(is_pub){
+        head = &head_pub;
+        tail = &tail_pub;
+    }else{
+        head = &head_pri;
+        tail = &tail_pri;
+    }
     
     if(der->len % 48 == 0){
-        len = der->len/48 * 65 + head.len + tail.len;
+        len = der->len/48 * 65 + head->len + tail->len;
     }else{
-        len = der->len/48 * 65 + head.len + tail.len;
+        len = der->len/48 * 65 + head->len + tail->len;
         len += base64_len(der->len % 48) + 1;
     }
     
@@ -445,14 +541,14 @@ dl_str * dl_rsaDer_to_pem(dl_str *der)
     res->data = dl_alloc(len, NULL);
     res->len = len;
     
-    memcpy(res->data, head.data, head.len);
+    memcpy(res->data, head->data, head->len);
     
     b_left = der->len;
     
     dl_str  s1, s2;
     s1.data = der->data;
     
-    s2.data = res->data + head.len;
+    s2.data = res->data + head->len;
     
     while(b_left){
         if(b_left >= 48){
@@ -471,7 +567,7 @@ dl_str * dl_rsaDer_to_pem(dl_str *der)
         *s2.data++ = '\n';
     }
     
-    memcpy(s2.data, tail.data, tail.len);
+    memcpy(s2.data, tail->data, tail->len);
     
     return res;
 }
@@ -484,13 +580,28 @@ dl_str *dl_rsaPem_to_der(char *data, size_t len)
     cur = data;
     
     dl_str head = dl_string("-----BEGIN RSA PRIVATE KEY-----\n");
-    dl_str tail = dl_string("-----END RSA PRIVATE KEY-----\n");
-    
+    dl_str head_8 = dl_string("-----BEGIN PRIVATE KEY-----\n");
+    //dl_str tail = dl_string("-----END RSA PRIVATE KEY-----\n");
+    dl_str head_pub = dl_string("-----BEGIN RSA PUBLIC KEY-----\n");
+    dl_str head_pub_8 = dl_string("-----BEGIN PUBLIC KEY-----\n");
     
     for(; *cur != '-'; cur++){
         len--;
     };
-    cur += head.len;
+    
+    if(memcmp(cur, head.data, head.len) == 0){
+        cur += head.len;
+    }else if(memcmp(cur, head_pub.data, head_pub.len) == 0){
+        cur += head_pub.len;
+    }else if(memcmp(cur, head_pub_8.data, head_pub_8.len) == 0){
+        cur += head_pub_8.len;
+    }else if(memcmp(cur, head_8.data, head_8.len) == 0){
+        cur += head_8.len;
+    }else{
+        return NULL;
+    }
+    
+
     
     last = cur;
     
@@ -548,7 +659,7 @@ static inline int dl_der_get_item(uchar *data, dl_str *res)
 {
     int bs;
     uchar   *cur, *tmp;
-    int32_t     len;
+    int32_t     len = 0;
     
     tmp = (uchar *)&len;
     
@@ -561,13 +672,19 @@ static inline int dl_der_get_item(uchar *data, dl_str *res)
     }else{
         bs = *cur & 0x7f;
         
-        if(bs == 2){
+        if(bs == 1){
+            if(__BYTE_ORDER == __LITTLE_ENDIAN){
+                tmp[0] = *(cur+1);
+            }else{
+                tmp[3] = *cur;
+            }
+        }else if(bs == 2){
             if(__BYTE_ORDER == __LITTLE_ENDIAN){
                 tmp[0] = *(cur+2);
                 tmp[1] = *(cur+1);
             }else{
-                tmp[0] = *(cur+1);
-                tmp[1] = *(cur+2);
+                tmp[2] = *(cur+1);
+                tmp[3] = *(cur+2);
             }
         }else{
             if(__BYTE_ORDER == __LITTLE_ENDIAN){
@@ -575,9 +692,9 @@ static inline int dl_der_get_item(uchar *data, dl_str *res)
                 tmp[1] = *(cur+2);
                 tmp[2] = *(cur+1);
             }else{
-                tmp[0] = *(cur+1);
-                tmp[1] = *(cur+2);
-                tmp[2] = *(cur+3);
+                tmp[1] = *(cur+1);
+                tmp[2] = *(cur+2);
+                tmp[3] = *(cur+3);
             }
         }
         
@@ -612,7 +729,8 @@ RSA_secret_key_ex *dl_der_to_rsaEx(dl_str *der, RSA_secret_key_ex *key)
     }
     
     // skip version
-    cur += 3;
+    if(*cur == 2 && *(cur+1) == 1)
+        cur += 3;
     
     if(cur > last) return NULL;
     

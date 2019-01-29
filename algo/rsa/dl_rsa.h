@@ -82,8 +82,9 @@ int dl_openssl_pkcs1_to_rsa(char *secret, RSA_secret_key *k);
 int dl_rsa_to_rsaEx(RSA_secret_key_ex *key_ex, RSA_secret_key *key);
 int dl_rsaEx_to_rsa(RSA_secret_key *key, RSA_secret_key_ex *key_ex);
 
+dl_str * dl_rsaPub_to_der(RSA_public_key *key, dl_str *str);
 dl_str * dl_rsaEx_to_der(RSA_secret_key_ex *key_ex, dl_str *str);
-dl_str * dl_rsaDer_to_pem(dl_str *der);
+dl_str * dl_rsaDer_to_pem(dl_str *der, int is_pub);
 dl_str *dl_rsaPem_to_der(char *data, size_t len);
 
 RSA_secret_key_ex *dl_der_to_rsaEx(dl_str *der, RSA_secret_key_ex *key);
