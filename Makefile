@@ -1,10 +1,7 @@
 CC =	cc
 CFLAGS =  -pipe  -O0 -g3 -fPIC #-DDL_MEM_DEBUG
-#MY_CFLAGS = -I re -I algo -I algo/rsa -I ./ -I /usr/local/gnupg/libgcrypt/include -I /usr/local/gnupg/libgpg-error/include
 
 MY_CFLAGS = -I re -I algo -I algo/rsa -I ./
-
-#XLIBS = -shared -lpcre2-8 -L /usr/local/gnupg/libgcrypt/lib -lgcrypt -Wl,-rpath,/usr/local/gnupg/libgcrypt/lib
 
 XLIBS = -shared -lpcre2-8
 
@@ -105,9 +102,6 @@ algo/dl_shau.o:
 
 algo/dl_sha-hmac.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_sha-hmac.o algo/dl_sha-hmac.c
-
-#algo/rsa/dl_rsa.o:
-#	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/rsa/dl_rsa.o algo/rsa/dl_rsa.c
 
 clean:
 	rm -f `find ./ -name '*.o'`
