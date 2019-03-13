@@ -28,8 +28,43 @@ dl_create_pool(size_t size, dl_log *log)
     p->large = NULL;
     p->log = log;
     p->slab_pool = NULL;
+    p->cleanup = NULL;
 
     return p;
+}
+
+dl_pool_cleanup *
+dl_pool_cleanup_add(dl_pool *p, size_t size)
+{
+    dl_pool_cleanup     *c;
+
+    // 内存池拿一块内存
+    c = dl_palloc(p, sizeof(dl_pool_cleanup));
+    if (c == NULL) {
+        return NULL;
+    }
+
+    // 如果要求额外数据就再分配一块
+    // 注意都是对齐的
+    if (size) {
+        c->data = dl_palloc(p, size);
+        if (c->data == NULL) {
+            return NULL;
+        }
+
+    } else {
+        c->data = NULL;
+    }
+
+    // handler清空，之后用户自己设置
+    c->handler = NULL;
+
+    // 挂到内存池的清理链表里
+    c->next = p->cleanup;
+
+    p->cleanup = c;
+
+    return c;
 }
 
 void *
@@ -186,6 +221,15 @@ dl_destroy_pool(dl_pool *pool)
 {
     dl_pool          *p, *n;
     dl_pool_large    *l;
+
+    dl_pool_cleanup  *c;
+
+    // 调用清理函数链表
+    for (c = pool->cleanup; c; c = c->next) {
+        if (c->handler) {
+            c->handler(c->data);
+        }
+    }
 
     for (l = pool->large; l; l = l->next) {
         if (l->alloc) {

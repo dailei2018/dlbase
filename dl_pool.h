@@ -24,6 +24,15 @@ struct _dl_pool_data {
     int             failed;
 };
 
+typedef struct _dl_pool_cleanup dl_pool_cleanup;
+typedef void (*dl_pool_cleanup_pt)(void *data);
+
+struct _dl_pool_cleanup {
+    dl_pool_cleanup_pt      handler;        //清理函数
+    void                    *data;          //传递给handler，清理用
+    dl_pool_cleanup         *next;          //链表指针，所有的清理结构体为一个链表
+};
+
 struct _dl_pool {
     dl_pool_data        d;
     size_t              max;
@@ -32,9 +41,12 @@ struct _dl_pool {
     dl_log              *log;
     
     dl_slab_pool        *slab_pool;
+    
+    dl_pool_cleanup     *cleanup;
 };
 
 dl_pool *dl_create_pool(size_t size, dl_log *log);
+dl_pool_cleanup *dl_pool_cleanup_add(dl_pool *p, size_t size);
 void *dl_palloc(dl_pool *pool, size_t size);
 void dl_destroy_pool(dl_pool *pool);
 void dl_reset_pool(dl_pool *pool);

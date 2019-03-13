@@ -14,6 +14,7 @@
 
 #define PH_UNIQUE   1
 #define PH_LIST     2
+#define PH_REPLACE     4
 
 enum {
     DL_PH_NULL,
@@ -26,6 +27,13 @@ typedef struct _dl_phash     dl_phash;
 typedef struct _dl_phash_k   dl_phash_k;
 typedef struct _dl_phash_v   dl_phash_v;
 typedef struct _dl_pnode     dl_pnode;
+
+typedef struct {
+    uint            hash;         //散列（哈希）标记
+    dl_str          key;          //键
+    dl_str          value;        //值
+    uchar           *lowcase_key;  //key的小写字符串指针
+} dl_hkv;
 
 struct _dl_phash_v{
     union{
@@ -57,6 +65,9 @@ struct _dl_phash {
 
     dl_pnode *node;
 };
+
+uint
+dl_phash_key(uchar *data, size_t len);
 
 dl_phash *dl_phash_init(dl_pool *pool, uint slot, int type);
 int dl_phash_set_str(dl_phash *h, char *data, int len, dl_str *v);

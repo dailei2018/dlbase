@@ -1,5 +1,16 @@
 #include "dl_base.h"
 
+void
+dl_strlow(char *dst, char *src, size_t n)
+{
+    while (n) {
+        *dst = dl_tolower(*src);
+        dst++;
+        src++;
+        n--;
+    }
+}
+
 static char *
 dl_sprintf_num(char *buf, char *last, uint64_t ui64, char zero,
                uint hexadecimal, uint width);
@@ -697,12 +708,12 @@ static int dl_decode_base64_internal(dl_str *dst, dl_str *src, const uchar *basi
 
 
 void
-dl_encode_base64(dl_str *dst, dl_str *src)
+dl_encode_base64(dl_str *dst, dl_str *src, int pad)
 {
     static uchar   basis64[] =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-    dl_encode_base64_internal(dst, src, basis64, 1);
+    dl_encode_base64_internal(dst, src, basis64, pad);
 }
 
 void
@@ -1436,6 +1447,68 @@ dl_escape_json(uchar *dst, uchar *src, size_t size)
     }
 
     return (uintptr_t) dst;
+}
+
+uintptr_t
+dl_hextoi(uchar *line, size_t n)
+{
+    uchar     c, ch;
+    uintptr_t  value, cutoff;
+
+    if (n == 0) {
+        return DL_ERROR;
+    }
+
+    cutoff = UINTPTR_MAX / 16;
+
+    for (value = 0; n--; line++) {
+        if (value > cutoff) {
+            return DL_ERROR;
+        }
+
+        ch = *line;
+
+        if (ch >= '0' && ch <= '9') {
+            value = value * 16 + (ch - '0');
+            continue;
+        }
+
+        c = (uchar) (ch | 0x20);
+
+        if (c >= 'a' && c <= 'f') {
+            value = value * 16 + (c - 'a' + 10);
+            continue;
+        }
+
+        return DL_ERROR;
+    }
+
+    return value;
+}
+
+uchar *
+dl_hex2bc(uchar *dst, uchar *src, size_t slen)
+{
+    intptr_t         value;
+    uchar *cur;
+    cur = src;
+    
+    if(slen > 0 && slen % 2 == 0){
+        
+        while(slen){
+            value = dl_hextoi(cur, 2);
+            if(value == DL_ERROR) return NULL;
+            *dst++ = (uchar)value;
+            
+            cur += 2;
+            slen -= 2;
+        }
+        
+    }else{
+        return NULL;
+    }
+
+    return dst;
 }
 
 static inline uchar dl_c2hex(uchar d){

@@ -4,7 +4,7 @@ static int dl_phash_set(dl_phash *h, dl_str *key, void *v, int type);
 static dl_phash_v *pfill_v(dl_phash_v *hv, void *v);
 static dl_pnode *pfill_node(dl_phash *h, dl_str *key, void *v, dl_pnode *n, int type);
 
-static uint
+uint
 dl_phash_key(uchar *data, size_t len)
 {
     uint i, key;
@@ -96,12 +96,12 @@ dl_phash_set(dl_phash *h, dl_str *key, void *v, int type)
         /*
          *  key not exits
          */
-         dl_pnode    *n_next = node->k.next;
+        dl_pnode    *n_next = node->k.next;
          
-         n = dl_palloc(h->pool, sizeof(dl_pnode));
-         if(n == NULL) return DL_ERROR;
-         node->k.next = n;
-         n->k.next = n_next;
+        n = dl_palloc(h->pool, sizeof(dl_pnode));
+        if(n == NULL) return DL_ERROR;
+        node->k.next = n;
+        n->k.next = n_next;
 
         if(pfill_node(h, key, v, n, type) == NULL) return DL_ERROR;
         n->k.hash = h_key;
@@ -113,9 +113,19 @@ dl_phash_set(dl_phash *h, dl_str *key, void *v, int type)
         /*
          * key already exits
          */
-        if(!(h->flag & PH_LIST)){
+         
+        if(h->flag & PH_UNIQUE){
             return DL_AGAIN;
         }
+         
+        if(h->flag & PH_REPLACE){
+        if(pfill_node(h, key, v, n, type) == NULL) return DL_ERROR;
+            n->k.hash = h_key;
+            n->v.next = NULL;
+            
+            return DL_OK;
+        }
+
         
         /* chain value */
             

@@ -5,11 +5,21 @@
 
 #define dl_cpymem(dst, src, n)   (((char *) memcpy(dst, src, n)) + (n))
 
+#define dl_tolower(c)      (char) ((c >= 'A' && c <= 'Z') ? (c | 0x20) : c)
+#define dl_toupper(c)      (char) ((c >= 'a' && c <= 'z') ? (c & ~0x20) : c)
+
 typedef struct _dl_str dl_str;
+typedef struct _dl_str_ch dl_str_ch;
 
 struct _dl_str{
     size_t len;
     char *data;
+};
+
+struct _dl_str_ch{
+    size_t          len;
+    char            *data;
+    dl_str_ch       *next;
 };
 
 #define dl_string(str)     { sizeof(str) - 1, (char *) str};
@@ -21,6 +31,8 @@ char * dl_sprintf(char *buf, const char *fmt, ...);
 char * dl_snprintf(char *buf, size_t max, const char *fmt, ...);
 char * dl_slprintf(char *buf, char *last, const char *fmt, ...);
 char * dl_vslprintf(char *buf, char *last, const char *fmt, va_list args);
+
+void dl_strlow(char *dst, char *src, size_t n);
 
 char * dl_strnchr(char *str, int len, char c);
 dl_array * dl_split_by_c(dl_pool *p, dl_str *str, char c);
@@ -39,7 +51,7 @@ char *dl_strdup_nt(char *data, size_t len);
 int dl_atoi(char *line, size_t n);
 
 /* base64 */
-void dl_encode_base64(dl_str *dst, dl_str *src);
+void dl_encode_base64(dl_str *dst, dl_str *src, int pad);
 void dl_encode_base64url(dl_str *dst, dl_str *src);
 
 int dl_decode_base64(dl_str *dst, dl_str *src);
@@ -68,6 +80,10 @@ void dl_unescape_uri(uchar **dst, uchar **src, size_t size, int type);
 uintptr_t dl_escape_html(uchar *dst, uchar *src, size_t size);
 uintptr_t dl_escape_json(uchar *dst, uchar *src, size_t size);
 
+uintptr_t
+dl_hextoi(uchar *line, size_t n);
+uchar *
+dl_hex2bc(uchar *dst, uchar *src, size_t slen);
 void dl_dump_bin2hex(char *buf, size_t len);
 void dl_memcpy_rev(char *dst, char *src, size_t len);
 
