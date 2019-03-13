@@ -17,12 +17,12 @@ static int dl_node_init_l(dl_table *t, int size);
 static void dl_array_set_int(dl_table *t, dl_value_l *v, long value);
 static int dl_array_set_str(dl_table *t, dl_value_l *v, char *str, size_t len);
 static void dl_array_set_void(dl_table *t, dl_value_l *v, void *value);
-static int dl_array_set(dl_table *t, long index, dl_value_l **vv);
+static int dl_array_set(dl_table *t, long index, dl_value_l **vv, dl_value_l *v);
 
 static void dl_node_set_int(dl_table *t, dl_value_l *v, long value);
 static int dl_node_set_str(dl_table *t, dl_value_l *v, char *str, size_t len);
 static void dl_node_set_void(dl_table *t, dl_value_l *v, void *value);
-static int dl_node_set(dl_table *t, char *str, size_t len, dl_value_l **vv);
+static int dl_node_set(dl_table *t, char *str, size_t len, dl_value_l **vv, dl_value_l *v);
 
 static const dl_node_l _dummynode = {
   {{0}, 0},         /* value */
@@ -210,13 +210,15 @@ void dl_del_key_index_l(dl_table *t, long index)
 /* array ------------------------*/
 /* int */
 int dl_array_set_int_l(dl_table *t, long index, long value){
-    dl_value_l      *v;
+    dl_value_l      *v, *vv;
     int         res;
     
-    res = dl_array_set(t, index, &v);
+    v = dl_find_by_index(t, index);
+    
+    res = dl_array_set(t, index, &vv, v);
     if(res == DL_ERROR) return DL_ERROR;
     
-    dl_array_set_int(t, v, value);
+    dl_array_set_int(t, vv, value);
     
     return DL_OK;
 }
@@ -230,13 +232,15 @@ static void dl_array_set_int(dl_table *t, dl_value_l *v, long value)
 /* string */
 int dl_array_set_str_l(dl_table *t, long index, char *str, size_t len)
 {
-    dl_value_l      *v;
+    dl_value_l      *v, *vv;
     int             res;
     
-    res = dl_array_set(t, index, &v);
+    v = dl_find_by_index(t, index);
+    
+    res = dl_array_set(t, index, &vv, v);
     if(res == DL_ERROR) return DL_ERROR;
         
-    if(dl_array_set_str(t, v, str, len) != 0){
+    if(dl_array_set_str(t, vv, str, len) != 0){
         return DL_ERROR;
     }
     
@@ -264,13 +268,18 @@ static int dl_array_set_str(dl_table *t, dl_value_l *v, char *str, size_t len)
 
 /* void */
 int dl_array_set_void_l(dl_table *t, long index, void *value){
-    dl_value_l      *v;
+    dl_value_l      *v, *vv;
     int             res;
     
-    res = dl_array_set(t, index, &v);
+    v = dl_find_by_index(t, index);
+    if(v){
+        if(v->v.v == value) return DL_OK;
+    }
+    
+    res = dl_array_set(t, index, &vv, v);
     if(res == DL_ERROR) return DL_ERROR;
     
-    dl_array_set_void(t, v, value);
+    dl_array_set_void(t, vv, value);
     
     return DL_OK;
 }
@@ -282,17 +291,14 @@ static void dl_array_set_void(dl_table *t, dl_value_l *v, void *value)
 }
 
 
-static int dl_array_set(dl_table *t, long index, dl_value_l **vv)
+static int dl_array_set(dl_table *t, long index, dl_value_l **vv, dl_value_l *v)
 {
-    dl_value_l      *v;
     dl_node_l       *node;
     
     dl_key_l        key;
     
     key.tt = DL_INT_L;
     key.k.n = index;
-    
-    v = dl_find_by_index(t, index);
     
     if(v == NULL){
         v = dl_newkey_l(t, &key);
@@ -327,13 +333,15 @@ static int dl_array_set(dl_table *t, long index, dl_value_l **vv)
 
 /* int */
 int dl_node_set_int_l(dl_table *t, char *str, size_t len, long value){
-    dl_value_l      *v;
+    dl_value_l      *v, *vv;
     int             res;
     
-    res = dl_node_set(t, str, len, &v);
+    v = dl_find_by_str(t, str, len);
+    
+    res = dl_node_set(t, str, len, &vv, v);
     if(res == DL_ERROR) return DL_ERROR;
     
-    dl_node_set_int(t, v, value);
+    dl_node_set_int(t, vv, value);
     
     return DL_OK;
 }
@@ -348,13 +356,15 @@ static void dl_node_set_int(dl_table *t, dl_value_l *v, long value)
 /* string */
 int dl_node_set_str_l(dl_table *t, char *str, size_t len, char *v_str, size_t v_len)
 {
-    dl_value_l      *v;
+    dl_value_l      *v, *vv;
     int             res;
     
-    res = dl_node_set(t, str, len, &v);
+    v = dl_find_by_str(t, str, len);
+    
+    res = dl_node_set(t, str, len, &vv, v);
     if(res == DL_ERROR) return DL_ERROR;
     
-    if(dl_node_set_str(t, v, v_str, v_len) != 0){
+    if(dl_node_set_str(t, vv, v_str, v_len) != 0){
         return DL_ERROR;
     }
     
@@ -384,13 +394,18 @@ static int dl_node_set_str(dl_table *t, dl_value_l *v, char *str, size_t len)
 /* void */
 int dl_node_set_void_l(dl_table *t, char *str, size_t len, void *value)
 {
-    dl_value_l      *v;
+    dl_value_l      *v, *vv;
     int             res;
     
-    res = dl_node_set(t, str, len, &v);
+    v = dl_find_by_str(t, str, len);
+    if(v){
+        if(v->v.v == value) return DL_OK;
+    }
+    
+    res = dl_node_set(t, str, len, &vv, v);
     if(res == DL_ERROR) return DL_ERROR;
     
-    dl_node_set_void(t, v, value);
+    dl_node_set_void(t, vv, value);
     
     return DL_OK;
 }
@@ -402,9 +417,8 @@ static void dl_node_set_void(dl_table *t, dl_value_l *v, void *value)
 }
 
 
-static int dl_node_set(dl_table *t, char *str, size_t len, dl_value_l **vv)
+static int dl_node_set(dl_table *t, char *str, size_t len, dl_value_l **vv, dl_value_l *v)
 {
-    dl_value_l      *v;
     dl_node_l       *node;
     
     dl_key_l        key;
@@ -414,8 +428,6 @@ static int dl_node_set(dl_table *t, char *str, size_t len, dl_value_l **vv)
     key.k.s = &ss;
     ss.data = str;
     ss.len = len;
-    
-    v = dl_find_by_str(t, str, len);
     
     if(v == NULL){
         

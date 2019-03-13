@@ -4210,3 +4210,33 @@ json_find_first_label (const json_t * object, const char *text_label)
 	}
 	return cursor;
 }
+
+/*
+int main(){
+    char            *line;
+    char            *key, *value;
+    json_t          *root, *child;
+    enum json_error error;
+    
+    root = NULL;
+    
+    line = "{\"ip\":\"222.92.4.91\", \"service\":\"rtsp\", \"port\":554, \"protocol\":\"tcp\"}";
+    error = json_parse_document(&root, line);
+    if(error != JSON_OK){
+        return -1;
+    }
+    
+    if(root->type != JSON_OBJECT) return -1;
+    
+    child = root->child;
+    
+    while(child){
+        key = child->text;
+        value = child->child->text;
+        child = child->next;
+    }
+
+
+
+}
+*/
