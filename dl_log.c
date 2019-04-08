@@ -15,11 +15,6 @@ void dl_log_error(int level, dl_log *log, const char *format, ...){
     
     va_start(args, format);
     
-    if(log->log_level == DL_LOG_OUT){
-        dl_printf_core(format, args);
-        return;
-    }
-    
     dl_log_core(level, log, format, args);
 }
 
@@ -49,12 +44,15 @@ dl_log * dl_log_init(int level, char *fname){
     dl_log *log = malloc(sizeof(dl_log));
     if(log == NULL) return NULL;
     
-    if(level == DL_LOG_OUT || fname == NULL){
-        log->log_level = DL_LOG_OUT;
+    log->log_level = level;
+    
+    if(fname == NULL){
+        log->file.name.len = 0;
+        log->file.name.data = NULL;
+        log->file.fd = STDOUT_FILENO;
         return log;
     }
     
-    log->log_level = level;
     log->file.name.len = strlen(fname);
     log->file.name.data = strdup(fname);
     if(log->file.name.data == NULL) return NULL;
@@ -65,8 +63,9 @@ dl_log * dl_log_init(int level, char *fname){
     return log;
 }
 
-void dl_log_free(dl_log *log){
-    if(log->log_level != DL_LOG_OUT){
+void dl_log_free(dl_log *log)
+{
+    if(log->file.name.data != NULL){
         close(log->file.fd);
         free(log->file.name.data);
     }
@@ -76,16 +75,13 @@ void dl_log_free(dl_log *log){
 
 void exit_log(int err, int level, dl_log *log, const char *fmt, ...)
 {
-    if(log == NULL) return;
+    if(log == NULL){
+        exit(err);
+    };
     
     va_list args;
     
     va_start(args, fmt);
-    
-    if(log->log_level == DL_LOG_OUT){
-        dl_printf_core(fmt, args);
-        exit(err);
-    }
     
     dl_log_core(level, log, fmt, args);
     

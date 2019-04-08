@@ -141,6 +141,29 @@ dl_atoi(char *line, size_t n)
 }
 
 
+char * dl_hton(char *buf, size_t len)
+{
+    char    *cur;
+    int     i;
+    
+    
+    if(__BYTE_ORDER == __LITTLE_ENDIAN){
+        cur = dl_alloc(len, NULL);
+        if(cur == NULL) return NULL;
+        
+        memcpy(cur, buf, len);
+        
+        for(i = 0; i < len; i++){
+            buf[i] = cur[len - i - 1];
+        }
+        
+        dl_free(cur);
+        
+    }
+    
+    return buf;
+}
+
 /*
     substring
 */
@@ -1487,21 +1510,26 @@ dl_hextoi(uchar *line, size_t n)
 }
 
 uchar *
-dl_hex2bc(uchar *dst, uchar *src, size_t slen)
+dl_hex2bc(uchar *dst, uchar *src, size_t slen, char * prefix)
 {
-    intptr_t         value;
-    uchar *cur;
+    int             step;
+    intptr_t        value;
+    uchar           *cur;
+    
+    step = 0;
     cur = src;
+    if(prefix) step = strlen(prefix);
     
     if(slen > 0 && slen % 2 == 0){
         
         while(slen){
+            cur += step;
             value = dl_hextoi(cur, 2);
             if(value == DL_ERROR) return NULL;
             *dst++ = (uchar)value;
             
             cur += 2;
-            slen -= 2;
+            slen -= 2 + step;
         }
         
     }else{
@@ -1521,22 +1549,23 @@ static inline uchar dl_c2hex(uchar d){
     return d;
 }
 
-void dl_dump_bin2hex(char *buf, size_t len)
+char * dl_bc2hex(char *dst, char *src, size_t len, char * hprefix)
 {
     int     i;
     uchar   d1, d2;
     
-    uchar *cur = buf;
+    uchar   *scur = src;
+    uchar   *dcur = dst;
     
     for(i = 0; i < len; i++){
-        d1 = *cur >> 4;
-        d2 = *cur++ & 0xf;
         
-        printf("%c%c", dl_c2hex(d1), dl_c2hex(d2));
-        //printf(",");
+        d1 = *scur >> 4;
+        d2 = *scur++ & 0xf;
+        
+        dcur = dl_sprintf(dcur, "%s%c%c",hprefix, dl_c2hex(d1), dl_c2hex(d2));
     }
     
-    printf("\n");
+    return dst;
 }
 
 void dl_memcpy_rev(char *dst, char *src, size_t len)
@@ -1554,7 +1583,7 @@ void dl_memcpy_rev(char *dst, char *src, size_t len)
 */
 #include "dl_md5.h"
 
-char *dl_md5sum(char *dst, char *str, size_t len)
+char *dl_md5sum(char *dst, char *str, size_t len, int bin)
 {
     uchar       digest[16];
     md5_ctx     context;
@@ -1562,6 +1591,11 @@ char *dl_md5sum(char *dst, char *str, size_t len)
     md5Init(&context);
     md5Update(&context, str, len);
     md5Final(digest, &context);
+    
+    if(bin){
+        memcpy(dst, digest, 16);
+        return dst;
+    }
     
     int i;
     for(i = 0; i < 16; i++){
@@ -1574,11 +1608,13 @@ char *dl_md5sum(char *dst, char *str, size_t len)
 
 #include "dl_sha.h"
 
-static char *dl_sha(char *dst, char *str, size_t len, enum SHAversion whichSha)
+static char *dl_sha(char *dst, char *str, size_t len, enum SHAversion whichSha, int bin)
 {
     USHAContext     ctx;
     uchar           digest[USHAHashSize(whichSha)];
-    int             s,i;
+    int             s,i,hsize;
+    
+    hsize = USHAHashSize(whichSha);
     
     s = USHAReset(&ctx, whichSha);
     if(s) return NULL;
@@ -1589,7 +1625,12 @@ static char *dl_sha(char *dst, char *str, size_t len, enum SHAversion whichSha)
     s = USHAResult(&ctx, digest);
     if(s) return NULL;
     
-    for(i = 0; i < USHAHashSize(whichSha) ; ++i){
+    if(bin){
+        memcpy(dst, digest, hsize);
+        return dst;
+    }
+    
+    for(i = 0; i < hsize; ++i){
         sprintf(dst, "%02x", digest[i]);
         dst += 2;
     }
@@ -1597,32 +1638,39 @@ static char *dl_sha(char *dst, char *str, size_t len, enum SHAversion whichSha)
     return dst;
 }
 
-char *dl_sha1sum(char *dst, char *str, size_t len){
-    return dl_sha(dst, str, len, SHA1);
+char *dl_sha1sum(char *dst, char *str, size_t len, int bin){
+    return dl_sha(dst, str, len, SHA1, bin);
 }
-char *dl_sha224sum(char *dst, char *str, size_t len){
-    return dl_sha(dst, str, len, SHA224);
+char *dl_sha224sum(char *dst, char *str, size_t len, int bin){
+    return dl_sha(dst, str, len, SHA224, bin);
 }
-char *dl_sha256sum(char *dst, char *str, size_t len){
-    return dl_sha(dst, str, len, SHA256);
+char *dl_sha256sum(char *dst, char *str, size_t len, int bin){
+    return dl_sha(dst, str, len, SHA256, bin);
 }
-char *dl_sha384sum(char *dst, char *str, size_t len){
-    return dl_sha(dst, str, len, SHA384);
+char *dl_sha384sum(char *dst, char *str, size_t len, int bin){
+    return dl_sha(dst, str, len, SHA384, bin);
 }
-char *dl_sha512sum(char *dst, char *str, size_t len){
-    return dl_sha(dst, str, len, SHA512);
+char *dl_sha512sum(char *dst, char *str, size_t len, int bin){
+    return dl_sha(dst, str, len, SHA512, bin);
 }
 
 char *dl_sha_hmac(char *dst, char *str, size_t len, char *key, size_t key_len,
-                  int whichSha)
+                  int whichSha, int bin)
 {
-    int     i,s;
+    int     i,s,hsize;
     uint8_t digest[USHAMaxHashSize];
+    
+    hsize = USHAHashSize(whichSha);
     
     s = dl_hmac(whichSha, str, len, key, key_len, digest);
     if(s) return NULL;
     
-    for(i = 0; i < USHAHashSize(whichSha); i++){
+    if(bin){
+        memcpy(dst, digest, hsize);
+        return dst;
+    }
+    
+    for(i = 0; i < hsize; i++){
         sprintf(dst, "%02x", digest[i]);
         dst += 2;
     }

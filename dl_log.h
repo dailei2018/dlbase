@@ -3,8 +3,6 @@
 
 #include "dl_base.h"
 
-#define DL_LOG_OUT               -1
-#define DL_LOG_STDERR            0
 #define DL_LOG_EMERG             1
 #define DL_LOG_ALERT             2
 #define DL_LOG_CRIT              3

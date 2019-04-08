@@ -49,6 +49,7 @@ char *dl_pstrdup(dl_pool *pool, char *data, size_t len);
 char *dl_pstrdup_nt(dl_pool *pool, char *data, size_t len);
 char *dl_strdup_nt(char *data, size_t len);
 int dl_atoi(char *line, size_t n);
+char * dl_hton(char *buf, size_t len);
 
 /* base64 */
 void dl_encode_base64(dl_str *dst, dl_str *src, int pad);
@@ -80,24 +81,22 @@ void dl_unescape_uri(uchar **dst, uchar **src, size_t size, int type);
 uintptr_t dl_escape_html(uchar *dst, uchar *src, size_t size);
 uintptr_t dl_escape_json(uchar *dst, uchar *src, size_t size);
 
-uintptr_t
-dl_hextoi(uchar *line, size_t n);
-uchar *
-dl_hex2bc(uchar *dst, uchar *src, size_t slen);
-void dl_dump_bin2hex(char *buf, size_t len);
+uintptr_t dl_hextoi(uchar *line, size_t n);
+uchar *dl_hex2bc(uchar *dst, uchar *src, size_t slen, char * prefix);
+char * dl_bc2hex(char *dst, char *src, size_t len, char * hprefix);
 void dl_memcpy_rev(char *dst, char *src, size_t len);
 
 /*
     checksum
 */
-char *dl_md5sum(char *dst, char *str, size_t len);
-char *dl_sha1sum(char *dst, char *str, size_t len);
-char *dl_sha224sum(char *dst, char *str, size_t len);
-char *dl_sha256sum(char *dst, char *str, size_t len);
-char *dl_sha384sum(char *dst, char *str, size_t len);
-char *dl_sha512sum(char *dst, char *str, size_t len);
+char *dl_md5sum(char *dst, char *str, size_t len, int bin);
+char *dl_sha1sum(char *dst, char *str, size_t len, int bin);
+char *dl_sha224sum(char *dst, char *str, size_t len, int bin);
+char *dl_sha256sum(char *dst, char *str, size_t len, int bin);
+char *dl_sha384sum(char *dst, char *str, size_t len, int bin);
+char *dl_sha512sum(char *dst, char *str, size_t len, int bin);
 char *dl_sha_hmac(char *dst, char *str, size_t len, char *key, size_t key_len,
-                  int whichSha);
+                  int whichSha, int bin);
 
 /*
  * debug
