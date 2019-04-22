@@ -1,4 +1,5 @@
 #include "dl_base.h"
+#include "dl_pcre2.h"
 
 void
 dl_strlow(char *dst, char *src, size_t n)
@@ -1549,6 +1550,25 @@ static inline uchar dl_c2hex(uchar d){
     return d;
 }
 
+char * dl_pbc2hex(char *src, size_t len, char * hprefix, dl_pool *pool)
+{
+    char        *buf, *cur;
+    int         plen;
+    
+    plen = 0;
+    if(hprefix){
+        plen = strlen(hprefix);
+    }
+    
+    buf = dl_palloc(pool, (2+plen) * len + 1);
+    cur = buf;
+    
+    cur = dl_bc2hex(cur, src, len, hprefix);
+    *cur = '\0';
+    
+    return buf;
+}
+
 char * dl_bc2hex(char *dst, char *src, size_t len, char * hprefix)
 {
     int     i;
@@ -1556,6 +1576,8 @@ char * dl_bc2hex(char *dst, char *src, size_t len, char * hprefix)
     
     uchar   *scur = src;
     uchar   *dcur = dst;
+    
+    if(hprefix == NULL) hprefix = "";
     
     for(i = 0; i < len; i++){
         
@@ -1565,23 +1587,25 @@ char * dl_bc2hex(char *dst, char *src, size_t len, char * hprefix)
         dcur = dl_sprintf(dcur, "%s%c%c",hprefix, dl_c2hex(d1), dl_c2hex(d2));
     }
     
-    return dst;
+    return dcur;
 }
 
-void dl_memcpy_rev(char *dst, char *src, size_t len)
+char * dl_memcpy_rev(char *dst, char *src, size_t len)
 {
     char *cur = src + len - 1;
     
     while(src <= cur){
         *dst++ = *cur--;
     }
+    
+    return dst;
 }
 
 
 /*
     checksum------------------------
 */
-#include "dl_md5.h"
+#include "dlc_md5.h"
 
 char *dl_md5sum(char *dst, char *str, size_t len, int bin)
 {
@@ -1606,7 +1630,7 @@ char *dl_md5sum(char *dst, char *str, size_t len, int bin)
     return dst;
 }
 
-#include "dl_sha.h"
+#include "dlc_sha.h"
 
 static char *dl_sha(char *dst, char *str, size_t len, enum SHAversion whichSha, int bin)
 {
@@ -1662,7 +1686,7 @@ char *dl_sha_hmac(char *dst, char *str, size_t len, char *key, size_t key_len,
     
     hsize = USHAHashSize(whichSha);
     
-    s = dl_hmac(whichSha, str, len, key, key_len, digest);
+    s = dlc_hmac(whichSha, str, len, key, key_len, digest);
     if(s) return NULL;
     
     if(bin){

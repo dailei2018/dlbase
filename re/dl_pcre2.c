@@ -1,4 +1,5 @@
 #include "dl_base.h"
+#include "dl_pcre2.h"
 
 pcre2_code *
 dl_compile_re(char *pattern, size_t len, dl_log *log){

@@ -83,8 +83,9 @@ uintptr_t dl_escape_json(uchar *dst, uchar *src, size_t size);
 
 uintptr_t dl_hextoi(uchar *line, size_t n);
 uchar *dl_hex2bc(uchar *dst, uchar *src, size_t slen, char * prefix);
+char * dl_pbc2hex(char *src, size_t len, char * hprefix, dl_pool *pool);
 char * dl_bc2hex(char *dst, char *src, size_t len, char * hprefix);
-void dl_memcpy_rev(char *dst, char *src, size_t len);
+char * dl_memcpy_rev(char *dst, char *src, size_t len);
 
 /*
     checksum

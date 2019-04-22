@@ -1,6 +1,6 @@
 /* rfc4634 */
 
-#include <dl_sha.h>
+#include <dlc_sha.h>
 
 /* 384--512 */
 

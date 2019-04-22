@@ -1,6 +1,6 @@
-#include "dl_sha.h"
+#include "dlc_sha.h"
 
-int dl_hmac(SHAversion whichSha, const unsigned char *text, int text_len,
+int dlc_hmac(SHAversion whichSha, const unsigned char *text, int text_len,
     const unsigned char *key, int key_len,
     uint8_t digest[USHAMaxHashSize])
 {

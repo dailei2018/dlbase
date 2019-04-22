@@ -1,7 +1,7 @@
 CC =	cc
 CFLAGS =  -pipe  -O0 -g3 -fPIC #-DDL_MEM_DEBUG
 
-MY_CFLAGS = -I re -I algo -I algo/rsa -I json -I ./
+MY_CFLAGS = -I re -I math -I json -I ./ -I./dlcrypt
 
 XLIBS = -shared -lpcre2-8
 
@@ -10,23 +10,25 @@ LINK =	$(CC)
 CORE_INCS =
 
 FILE_SO = libdlbase.so
+MPI_SO = dlcrypt/libdlcrypt.so
 
 build: binary
 
-binary:	$(FILE_SO)
+binary:	$(FILE_SO) $(MPI_SO)
+
+$(MPI_SO):
+	$(MAKE) -C dlcrypt
 
 $(FILE_SO):	dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o dl_queue.o \
 				dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o dl_inet.o \
-				dl_time.o dl_table.o re/dl_pcre2.o algo/dl_math.o algo/dl_md5.o algo/dl_sha1.o \
-				algo/dl_sha2-32.o algo/dl_sha2-64.o algo/dl_shau.o algo/dl_sha-hmac.o \
+				dl_time.o dl_table.o re/dl_pcre2.o math/dl_math.o \
 				json/dl_json.o
 				
 				
 	
 	$(LINK) -o $(FILE_SO) dl_file.o dl_log.o dl_pool.o dl_string.o dl_array.o dl_list.o \
 			   dl_queue.o dl_phash.o dl_hash.o dl_bstree.o dl_rbtree.o dl_shm.o dl_buf.o \
-			   dl_inet.o dl_time.o dl_table.o re/dl_pcre2.o algo/dl_math.o algo/dl_md5.o  \
-			   algo/dl_sha1.o algo/dl_sha2-32.o algo/dl_sha2-64.o algo/dl_shau.o algo/dl_sha-hmac.o json/dl_json.o \
+			   dl_inet.o dl_time.o dl_table.o re/dl_pcre2.o math/dl_math.o json/dl_json.o \
 			   $(XLIBS)
 	
 	#rm -f `find ./ -name '*.o'`
@@ -84,31 +86,15 @@ dl_table.o:
 re/dl_pcre2.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o re/dl_pcre2.o re/dl_pcre2.c
 
-algo/dl_math.o:
-	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_math.o algo/dl_math.c
+math/dl_math.o:
+	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o math/dl_math.o math/dl_math.c
 
-algo/dl_md5.o:
-	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_md5.o algo/dl_md5.c
-
-algo/dl_sha1.o:
-	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_sha1.o algo/dl_sha1.c
-
-algo/dl_sha2-32.o:
-	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_sha2-32.o algo/dl_sha2-32.c
-
-algo/dl_sha2-64.o:
-	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_sha2-64.o algo/dl_sha2-64.c
-
-algo/dl_shau.o:
-	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_shau.o algo/dl_shau.c
-
-algo/dl_sha-hmac.o:
-	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o algo/dl_sha-hmac.o algo/dl_sha-hmac.c
 
 json/dl_json.o:
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $(CORE_INCS) -o json/dl_json.o json/dl_json.c
 
 clean:
+	$(MAKE) -C dlcrypt $@
 	$(RM) `find ./ -name '*.o'`
 	$(RM) $(FILE_SO)
 

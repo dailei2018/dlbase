@@ -1,4 +1,5 @@
 #include "dl_base.h"
+#include "dl_math.h"
 
 static dl_value_l *dl_find_l(dl_table *t, dl_key_l *key);
 static dl_value_l *dl_set_l(dl_table *t, dl_key_l *key);
