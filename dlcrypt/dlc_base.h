@@ -23,6 +23,13 @@
 #include "bignum.h"
 #include "dlc_pkcs1.h"
 #include "dlc_sha.h"
+#include "dlc_aes.h"
+#include "dlc_des.h"
+
+/* tls */
+#include "dlc_asn1.h"
+#include "dlc_x509.h"
+
 
 
 

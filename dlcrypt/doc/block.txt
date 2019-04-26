@@ -1,0 +1,6 @@
+[分组密码模式]
+ECB: Electronic CodeBook mode (电子密码本模式)
+CBC: Cipher Block Chaining mode (密码分组链接模式)
+CFB: Cipher FeedBack mode (密文反馈模式)
+OFB: Output FeedBack mode (输出反馈模式)
+CTR: CounTeR mode (计数器模式)

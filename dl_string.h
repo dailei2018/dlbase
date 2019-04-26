@@ -24,6 +24,7 @@ struct _dl_str_ch{
 
 #define dl_string(str)     { sizeof(str) - 1, (char *) str};
 
+void dl_str_free(dl_str *str);
 void dl_exit_msg(int err, const char *fmt, ...);
 void dl_printf(const char *fmt, ...);
 void dl_printf_core(const char *fmt, va_list args);

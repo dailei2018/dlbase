@@ -29,6 +29,7 @@ dl_str * dlc_rsa_pem_to_der(char *fname)
     
     while(fgets(tmpbf, 1024, fp)){
         len = strlen(tmpbf) - 1;
+        if(tmpbf[len - 1] == '\r') len--;
         
         cur = dl_cpymem(cur, tmpbf, len);
     }

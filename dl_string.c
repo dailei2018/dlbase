@@ -1,6 +1,12 @@
 #include "dl_base.h"
 #include "dl_pcre2.h"
 
+void dl_str_free(dl_str *str)
+{
+    dl_free(str->data);
+    dl_free(str);
+}
+
 void
 dl_strlow(char *dst, char *src, size_t n)
 {

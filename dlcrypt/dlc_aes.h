@@ -1,6 +1,8 @@
 #ifndef __DLC_AES__
 #define __DLC_AES__
 
+#include <stdint.h>
+#include <assert.h>
 
 #define AES_BLOCK_SIZE 16
 
@@ -17,23 +19,33 @@ struct _aes_ctx
 {
   uint32_t keys[60];  /* maximum size of key schedule */
   unsigned  nrounds;  /* number of rounds to use for our key size */
+  
+  char      vi[AES_BLOCK_SIZE];
 };
 
 void
-aes_set_encrypt_key(aes_ctx *ctx,
+dlc_aes_set_encrypt_key(aes_ctx *ctx,
 		    unsigned length, const uint8_t *key);
 void
-aes_set_decrypt_key(aes_ctx *ctx,
+dlc_aes_set_decrypt_key(aes_ctx *ctx,
 		   unsigned length, const uint8_t *key);
 
-void
-aes_encrypt(aes_ctx *ctx,
-	    unsigned length, uint8_t *dst,
-	    const uint8_t *src);
-void
-aes_decrypt(aes_ctx *ctx,
-	    unsigned length, uint8_t *dst,
-	    const uint8_t *src);
+void dlc_aes_encrypt(aes_ctx *ctx, char * src, int slen, char * to);
+void dlc_aes_decrypt(aes_ctx *ctx, char * src, int slen, char * to);
 
+dl_str * dlc_aes_ecb_encrypt(aes_ctx *ctx, char * src, int slen, char * to);
+dl_str * dlc_aes_ecb_decrypt(aes_ctx *ctx, char * src, int slen, char * to);
+
+dl_str * dlc_aes_cbc_encrypt(aes_ctx *ctx, char * src, int slen, char * to);
+dl_str * dlc_aes_cbc_decrypt(aes_ctx *ctx, char * src, int slen, char * to);
+
+dl_str * dlc_aes_cfb_encrypt(aes_ctx *ctx, char * src, int slen, char * to);
+dl_str * dlc_aes_cfb_decrypt(aes_ctx *ctx, char * src, int slen, char * to);
+
+dl_str * dlc_aes_ofb_encrypt(aes_ctx *ctx, char * src, int slen, char * to);
+dl_str * dlc_aes_ofb_decrypt(aes_ctx *ctx, char * src, int slen, char * to);
+
+dl_str * dlc_aes_crt_encrypt(aes_ctx *ctx, char * src, int slen, char * to);
+dl_str * dlc_aes_crt_decrypt(aes_ctx *ctx, char * src, int slen, char * to);
 
 #endif

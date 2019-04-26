@@ -14,6 +14,8 @@
 
 typedef struct _rsa_public_key  rsa_public_key;
 typedef struct _rsa_private_key rsa_private_key;
+typedef struct _rsa_key_pair    rsa_key_pair;
+
 
 struct _rsa_public_key
 {
@@ -49,6 +51,10 @@ struct _rsa_private_key
   mpz_t c;
 };
 
+struct _rsa_key_pair{
+    rsa_public_key      pub;
+    rsa_private_key     key;
+};
 
 /*
 gnupg
@@ -79,6 +85,7 @@ typedef struct
 
 */
 
+void rsa_compute_root(const rsa_private_key *key, mpz_t x, const mpz_t m);
 
 void rsa_public_key_init(rsa_public_key *key);
 void rsa_private_key_init(rsa_private_key *key);
@@ -92,4 +99,12 @@ int
 rsa_decrypt(rsa_private_key *key, int *length, char *message, const mpz_t gibberish);
 
 
+int rsa_sha1_sign(rsa_private_key *key, char *msg, int len, mpz_t s);
+int rsa_sha1_verify(rsa_public_key *key, char *msg, size_t len, mpz_t s);
+
+int rsa_sha256_sign(rsa_private_key *key, char *msg, int len, mpz_t s);
+int rsa_sha256_verify(rsa_public_key *key, char *msg, size_t len, mpz_t s);
+
+int rsa_md5_sign(rsa_private_key *key, char *msg, int len, mpz_t s);
+int rsa_md5_verify(rsa_public_key *key, char *msg, size_t len, mpz_t s);
 #endif
