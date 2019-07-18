@@ -830,6 +830,10 @@ static int resize (dl_table *t, int nasize, int nhsize) {
         }
 
     }
+    
+    if(old_node == dummynode)
+        return 0;
+    
     /* re-insert old elements to new node */
     for (i = (1 << oldhsize) - 1; i >= 0; i--) {
         dl_node_l *old = old_node + i;
@@ -841,8 +845,9 @@ static int resize (dl_table *t, int nasize, int nhsize) {
       
     }
     
-    if(old_node != dummynode) dl_free(old_node);
+    dl_free(old_node);
 
+    return 0;
 }
 
 static int dl_rehash(dl_table *t, dl_key_l *ek){
