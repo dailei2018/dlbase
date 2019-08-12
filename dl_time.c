@@ -7,9 +7,9 @@
 
 int dl_event_timer_alarm = 1;
 
-static char dl_time_buf[64];
-static ulong    msec;
-static ulong    sec;
+static __thread char dl_time_buf[64];
+static __thread ulong    msec;
+static __thread ulong    sec;
 
 
 static void dl_update_time()

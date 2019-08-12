@@ -55,10 +55,17 @@ dl_log * dl_log_init(int level, char *fname){
     
     log->file.name.len = strlen(fname);
     log->file.name.data = strdup(fname);
-    if(log->file.name.data == NULL) return NULL;
+    if(log->file.name.data == NULL) {
+        free(log);
+        return NULL;
+    }
     
     log->file.fd = open(fname, O_RDWR|O_APPEND|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    if(log->file.fd == -1) return NULL;
+    if(log->file.fd == -1) {
+        free(log->file.name.data);
+        free(log);
+        return NULL;
+    }
     
     return log;
 }
